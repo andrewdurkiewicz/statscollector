@@ -11,7 +11,8 @@ static int callback(void* data, int argc, char** argv, char** azColName)
     int i; 
     fprintf(stderr, "%s: ", (const char*)data); 
   
-    for (i = 0; i < argc; i++) { 
+    for (i = 0; i < argc; i++) 
+    { 
         printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL"); 
     } 
   
@@ -24,11 +25,16 @@ static int callback(void* data, int argc, char** argv, char** azColName)
 void SQL_CMD(string comand);
 sqlite3 *db;
 char *zErrMsg = 0;
-int main(int argc, char* argv[]){
-   for(int i = 0; i<3600; i++){
-      int rc = sqlite3_open("StatsCollector.db", &db);
+
+
+int main(int argc, char* argv[])
+{
+   for(int i = 0; i<3600; i++)
+   {
+       int rc = sqlite3_open("StatsCollector.db", &db);
       cout << rc;
-      if (rc == 0){
+      if (rc == 0)
+      {
         cout << "reached";
         //checks if database exist, if not, create it and the table
         SQL_CMD("StatsCollector.db");
