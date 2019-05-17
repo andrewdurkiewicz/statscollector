@@ -26,41 +26,31 @@ void SQL_CMD(string comand);
 sqlite3 *db;
 char *zErrMsg = 0;
 
-
 int main(int argc, char* argv[])
 {
    for(int i = 0; i<3600; i++)
    {
-       int rc = sqlite3_open("StatsCollector.db", &db);
-      cout << rc;
+      int rc = sqlite3_open("StatsCollector.db", &db);
       if (rc == 0)
       {
-        cout << "reached";
         //checks if database exist, if not, create it and the table
         SQL_CMD("StatsCollector.db");
         SQL_CMD("CREATE TABLE 'stats' ( 'Time' INTEGER NOT NULL, 'UL' REAL, 'DL' REAL, 'Throughput' REAL);");
 
       }
       SQL_CMD("ATTACH DATABASE 'StatsCollector' as 'statscollector';");
-      
-      cout << "STATE OF TABLE BEFORE INSERT" << endl;
-      SQL_CMD("SELECT * FROM stats WHERE 1;");
 
       char buffer[200];
       sprintf(buffer,"INSERT INTO stats (Time,UL,DL,Throughput) VALUES (%i,%-.2f,%-.2f,%-.2f);",i, i*2.2, i*4.3, i*1.5);
       SQL_CMD(buffer);
-
-      cout << "STATE OF TABLE AFTER INSERT" << endl;
       SQL_CMD("SELECT * FROM stats WHERE 1;");
       sqlite3_close(db);
 
-      usleep(60*pow(10,6)); //sleep for 1 minute 
+      //usleep(60*pow(10,6)); //sleep for 1 minute 
 
    }
 
 }
-
-
 
 void SQL_CMD(string command){
 
