@@ -2,7 +2,8 @@
 #include <sqlite3.h> 
 #include <string> 
 #include <stdio.h>
-#include <unistd.h>      
+#include <unistd.h>  
+#include <cmath>    
 using namespace std; 
   
 static int callback(void* data, int argc, char** argv, char** azColName) 
@@ -18,16 +19,22 @@ static int callback(void* data, int argc, char** argv, char** azColName)
     return 0; 
 } 
 
-
+//CREATE TABLE 'stats' ( 'Time' INTEGER NOT NULL, 'UL' REAL, 'DL' REAL, 'Throughput' REAL);
   
 void SQL_CMD(string comand);
 sqlite3 *db;
 char *zErrMsg = 0;
-int rc = sqlite3_open("testDB.db", &db);
-int i = 0;
 int main(int argc, char* argv[]){
-   while(1){
-      i++;
+   for(int i = 0; i<3600; i++){
+      int rc = sqlite3_open("StatsCollector.db", &db);
+      cout << rc;
+      if (rc == 0){
+        cout << "reached";
+        //checks if database exist, if not, create it and the table
+        SQL_CMD("StatsCollector.db");
+        SQL_CMD("CREATE TABLE 'stats' ( 'Time' INTEGER NOT NULL, 'UL' REAL, 'DL' REAL, 'Throughput' REAL);");
+
+      }
       SQL_CMD("ATTACH DATABASE 'StatsCollector' as 'statscollector';");
       
       cout << "STATE OF TABLE BEFORE INSERT" << endl;
@@ -39,10 +46,11 @@ int main(int argc, char* argv[]){
 
       cout << "STATE OF TABLE AFTER INSERT" << endl;
       SQL_CMD("SELECT * FROM stats WHERE 1;");
-      usleep(10000);
+      sqlite3_close(db);
+
+      usleep(60*pow(10,6)); //sleep for 1 minute 
 
    }
-   sqlite3_close(db);
 
 }
 
