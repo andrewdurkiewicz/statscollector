@@ -5,7 +5,8 @@
 #include <unistd.h>  
 #include <cmath>    
 using namespace std; 
-  
+//to run:  g++ -o statscollector statscollector.cpp -lsqlite3 && ./statscollector
+
 static int callback(void* data, int argc, char** argv, char** azColName) 
 { 
     int i; 
@@ -28,8 +29,9 @@ char *zErrMsg = 0;
 
 int main(int argc, char* argv[])
 {
-   for(int i = 0; i<3600; i++)
+   for(int i = 0; i<10800; i++)
    {
+      cout << i << endl;
       int rc = sqlite3_open("StatsCollector.db", &db);
       if (rc == 0)
       {
@@ -43,7 +45,7 @@ int main(int argc, char* argv[])
       char buffer[200];
       sprintf(buffer,"INSERT INTO stats (Time,UL,DL,Throughput) VALUES (%i,%-.2f,%-.2f,%-.2f);",i, i*2.2, i*4.3, i*1.5);
       SQL_CMD(buffer);
-      SQL_CMD("SELECT * FROM stats WHERE 1;");
+      //SQL_CMD("SELECT * FROM stats WHERE 1;");
       sqlite3_close(db);
 
       //usleep(60*pow(10,6)); //sleep for 1 minute 
