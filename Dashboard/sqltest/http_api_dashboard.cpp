@@ -1,20 +1,23 @@
-/*
-    Author: Bryan Gillespie
-*/
-#include "include/http_api_dashboard.h"
-#include "nlohmann/nlohmann/json.hpp"
-#include "nlohmann/nlohmann/json_fwd.hpp"
-#include "nlohmann/nlohmann/adl_serializer.hpp"
-#include "sqlite3/sqlite3.h"
-#include <SQLiteCpp/Backup.h>
-#include <SQLiteCpp/Database.h>
-#include <SQLiteCpp/Statement.h>
-#include <SQLiteCpp/Exception.h>
+
+#include "nlohmann/json.hpp"
+#include <sstream>
+#include <iostream>
+#include <fstream>
+#include <unistd.h>
+#include <cstdlib>
+#include <http_api_dashboard.h>
+
+using json = nlohmann::json;
+using namespace Express;
+using namespace std;
+
 using json = nlohmann::json;
 using namespace Express;
 using namespace std;
 
 
+STATIC string events_db_path = "StatsCollector.db";
+STATIC string stats_analysis_results_path = "/misc/stats_analysis_results.json";
 
 static bool addTimestampCondition(vector<string> & conditions, const string & field, const string & op, Request & req, Response & res)
 {
