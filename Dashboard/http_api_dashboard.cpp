@@ -15,21 +15,11 @@ using namespace std;
 Json::Value response;
 SQLite:: Database db("StatsCollector.db", SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
 string q = "select * from stats where Time";    
-void getUL(), getDL(), getThroughput();
+void getUL(Request & req, Response & res), getDL(Request & req, Response & res), getThroughput(Request & req, Response & res);
 
 
 
-
-int main() {
-    getUL();
-    getDL();
-
-    getThroughput();
-    return 0;
-}
-
-
-void getUL(){
+void getUL(Request & req, Response & res){
     SQLite::Statement query(db,q);
 
     while(query.executeStep()){
@@ -38,12 +28,12 @@ void getUL(){
         row["UL"] = (const char *) query.getColumn("UL");
         response.append(row);
     }
-        ofstream o("UL.json");
-        o << response << endl;
-        cout << response;
-}
+        // ofstream o("UL.json");
+        // o << response << endl;
+        // cout << o;
+        res.send(response);
 
-void getDL(){
+void getDL(Request & req, Response & res){
         SQLite::Statement query(db,q);
 
     while(query.executeStep()){
@@ -53,11 +43,13 @@ void getDL(){
         response.append(row);
     }
         ofstream o("DL.json");
-        o << response << endl;
-        cout << response;
+        // o << response << endl;
+        // cout << o;
+        res.send(response);
+
 }
 
-void getThroughput(){
+void getThroughput(Request & req, Response & res){
         SQLite::Statement query(db,q);
 
     while(query.executeStep()){
@@ -67,6 +59,16 @@ void getThroughput(){
         response.append(row);
     }
         ofstream o("Throughput.json");
-        o << response << endl;
-        cout << response;
+        // o << response << endl;
+        // cout << o;
+        res.send(response);
+}
+
+
+void initDashboardRoutes(Router & router)
+{
+    router.get("/UL", getUL);
+    router.get("/DL", getDL);
+    router.get("/Throughput", getThroughput);
+
 }
