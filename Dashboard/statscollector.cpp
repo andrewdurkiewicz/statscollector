@@ -86,22 +86,204 @@ unsigned int handle_alignment = 0;
 // ALL INCLUDES AND DECLARATIONS BEFORE THIS POINT PRETAIN TO NETWORKING ///////////////////
 
 /////////////////// NETWORKING CODE ///////////////////
+
+// This message handler will be invoked once for each incoming message. It
+// prints the message and then sends a copy of the message back to the server.
+// This might not be necessary in our case. Not sure.
+void on_message(client* c, websocketpp::connection_hdl hdl, message_ptr msg) 
+{
+    std::string headers;
+    std::string keydata;
+    std::string message;
+    websocketpp::lib::error_code ec;
+	std::map<string,stats_data_t>::iterator it;
+	int delta_val;
+	unsigned int ind; 
+	
+	struct tm *startTimeStruct;
+    struct tm *endTimeStruct;
+    char startTimeStr[100];
+    char endTimeStr[100];
+	
+    /* Setup time information*/
+    coln_end_time = time(NULL);
+    startTimeStruct = localtime(&coln_start_time);
+    strftime(startTimeStr,100,"%m/%d/%Y %H:%M",startTimeStruct);
+    endTimeStruct = localtime(&coln_end_time);
+    strftime(endTimeStr,100,"%m/%d/%Y %H:%M",endTimeStruct);
+
+    message = msg->get_payload();
+    	
+    size_t found_header = message.find("headers:");
+	//std::cout << "on message found header: " << found_header << std::endl;
+    size_t found_data = message.find("data:");
+    //std::cout << "on message found data: " << found_data << std::endl;
+	std::cout << "conf_data size: " << conf_data.size() << std::endl;
+    if (found_header!=std::string::npos)
+    {
+        headers = message.substr(found_header+8, message.length());
+    
+	    std::string line;
+		std::string header;
+        std::string delim1= ",";
+        std::string delim2 =":";
+        size_t pos;
+        ind  = 0;
+	    while((pos = headers.find(delim1)) != std::string::npos )
+        {
+	        line = headers.substr(0,pos);
+            size_t pos_col;
+            if((pos_col = line.find(delim2)) != std::string::npos)
+            {
+				std::cout << "header: " << line << "....." << line.substr(pos_col+1,line.length()) << "....." <<  conf_data[ind].name.c_str() << std::endl;
+				if(line.substr(pos_col+1,line.length()) == conf_data[ind].name.c_str())
+				{
+					std::cout << "name match found: " << std::endl;
+			        conf_data[ind].datatype = line.substr(0,pos_col);
+				    ind++;
+				}
+            }
+            headers.erase(0,pos + delim1.length());
+        }
+        //last one
+        if(!headers.empty())
+        {
+            std::cout << "last header: " << headers << ind << std::endl;
+            if((pos = headers.find(delim2)) != std::string::npos)
+            {
+				conf_data[ind].datatype = headers.substr(0,pos);
+				std::cout << "header: " << line << ind << std::endl;
+                ind++;
+            }
+        }
+        std::cout << "printing to file: " << headers << ind << std::endl;
+		fprintf (output_file, "%s,", STATS_FILE_HDR_PFX);
+		for (ind = 0; ind < conf_data.size(); ++ind) 
+		{ 
+			fprintf(output_file, "%s",  conf_data[ind].header.c_str());
+			if(ind != conf_data.size() -1)
+			    fprintf(output_file, ",");
+			fflush(output_file); 
+		}
+		
+		fprintf(output_file, "\n");
+		fflush(output_file);
+		std::cout << "header written" << std::endl;
+    }
+    else if (found_data!=std::string::npos)
+    {
+        keydata = message.substr(found_data+5, message.length());
+        string line2;
+        string delim1= ",";
+        string delim2= ":";
+        size_t pos;
+		ind = 0;
+        while((pos = keydata.find(delim1)) != string::npos )
+        {
+            line2 = keydata.substr(0,pos);
+            size_t pos_col;
+			std::cout << "line ind: " << line2 << ind << std::endl;
+            if((pos_col = line2.find(delim2)) != std::string::npos)
+            {
+				std::cout << "substr name: " << line2.substr(0,pos_col) << conf_data[ind].name.c_str() << std::endl;
+				if(line2.substr(0,pos_col) == conf_data[ind].name.c_str())
+				{
+					conf_data[ind].curr = line2.substr(pos_col + delim2.length());
+					if(conf_data[ind].val == "DELTA")
+					{
+						if(conf_data[ind].prev != "")
+						{
+							std::stringstream ss;
+							delta_val = atoi(conf_data[ind].curr.c_str()) - atoi(conf_data[ind].prev.c_str());
+							ss << delta_val;
+							conf_data[ind].prev = conf_data[ind].curr;
+							conf_data[ind].curr = ss.str();
+						}
+						else
+						{
+							conf_data[ind].prev = conf_data[ind].curr;
+						}
+					}
+					std::cout << "data: " << line2 << ind << std::endl;
+					ind++;
+				}
+            }
+            keydata.erase(0,pos + delim1.length());          
+        }
+        //last value
+        if(!keydata.empty())
+        {
+            if((pos = keydata.find(delim2)) != std::string::npos)
+            {
+				conf_data[ind].curr = keydata.substr(pos + delim2.length());
+				if(conf_data[ind].val == "DELTA")
+				{
+					if(conf_data[ind].prev != "")
+					{
+						std::stringstream ss;
+						delta_val = atoi(conf_data[ind].curr.c_str()) - atoi(conf_data[ind].prev.c_str());
+						ss << delta_val;
+						conf_data[ind].prev = conf_data[ind].curr;
+						conf_data[ind].curr = ss.str();
+					}
+					else
+					{
+						conf_data[ind].prev = conf_data[ind].curr;
+					}
+				}
+				std::cout << "data: " << keydata << ind << std::endl;
+				ind++;
+            }
+			handle_alignment++;
+        }
+		if(handle_alignment > 1)
+		{
+			fprintf(output_file, "%s,%d,%s,%s,", "PKA2000W", getSerNum(), startTimeStr, endTimeStr);
+			for (ind = 0; ind < conf_data.size(); ++ind) 
+			{ 
+				fprintf(output_file, "%s",  conf_data[ind].curr.c_str());
+				if(ind != conf_data.size() -1)
+					fprintf(output_file, ",");
+				fflush(output_file); 
+			}
+			fprintf(output_file, "\n");
+			fflush(output_file);
+		}
+
+    }	
+
+    if (ec)
+    {
+        std::cout << "Echo failed because: " << ec.message() << std::endl;
+    }
+    coln_start_time = coln_end_time;
+
+}
+
+// Triggered when a connection is opened
 void on_open(client* c, websocketpp::connection_hdl hdl) 
 {	
 	websocketpp::lib::error_code ec;
+
+    // Input file of needed data
     std::ifstream file_input(input_file.c_str());
+
 	Json::Reader reader;
 	Json::Value root;
 	stats_data_t temp_dat;
+
+    // Parse input file and store in JSON value
 	reader.parse(file_input, root);
 	std::string output;
-	    
+
+    // In output file, store parsed JSON as strings
 	output.append("rows="+root["rows"].asString()+":");
 	output.append("style="+root["style"].asString()+":");
 	output.append("time="+root["time"].asString()+":");
 	
 	Json::Value stats = root["stats"];
 	
+    // Iterate over stats (all data) and do stuff
 	for ( int index = 0; index < stats.size(); ++index ) {
 		output.append(root["parent_struct"].asString()+",");
 		output.append("system_stats_curr_"+stats[index]["root_struct"].asString()+"_");
@@ -121,7 +303,8 @@ void on_open(client* c, websocketpp::connection_hdl hdl)
 		temp_dat.prev = "";
 		conf_data.push_back(temp_dat);
 	}
-	
+
+    // Send output data to server (Input data is JSOn then gets parsed to strings put in output file then sent out)
     c->send(hdl,output,websocketpp::frame::opcode::text,ec);
     std::cout << "Message sent : " <<  output << std::endl;
     if (ec)
