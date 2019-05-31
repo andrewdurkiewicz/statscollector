@@ -45,12 +45,12 @@ void getUL()
 void getDL()
 {
     SQLite::Statement query(db,q);
-    Json::Value response = _initJson("UL");
+    Json::Value response = _initJson("DL");
     while(query.executeStep())
     {
         Json::Value row;
         row["Time"] = (int) query.getColumn("Time");
-        row["DL"] = (const char *) query.getColumn("UL");
+        row["DL"] = (const char *) query.getColumn("DL");
         response["DL"].append(row);
     }
         ofstream o("DL.json");
@@ -61,12 +61,12 @@ void getDL()
 void getThroughput()
 {
     SQLite::Statement query(db,q);
-    Json::Value response = _initJson("UL");
+    Json::Value response = _initJson("Throughput");
     while(query.executeStep())
     {
         Json::Value row;
         row["Time"] = (int) query.getColumn("Time");
-        row["Throughput"] = (const char *) query.getColumn("UL");
+        row["Throughput"] = (const char *) query.getColumn("Throughput");
         response["Throughput"].append(row);
     }
         ofstream o("Throughput.json");
