@@ -23,14 +23,16 @@ SQLite:: Database db("StatsCollector.db", SQLite::OPEN_READWRITE | SQLite::OPEN_
 string q = "select * from stats where Time";    
 
 Json::Value _initJson(string stat){
+    Json::Value proto_resname;
+    proto_resname["Stat"] = stat;
     Json::Value proto_res;
-    proto_res[stat] = Json::arrayValue;
+    proto_res["Data"] = Json::arrayValue;
     return proto_res;
 }
 
 void getUL()
 {
-    SQLite::Statement query(db,q);
+	SQLite::Statement query(db,q);
     Json::Value response = _initJson("UL");
     while(query.executeStep())
     {
@@ -74,7 +76,7 @@ void getThroughput()
 }
 int main()
 {
-    getUL();
+    //getUL();
     getDL();
     getThroughput();
     return 0;
