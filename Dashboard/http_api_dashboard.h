@@ -12,7 +12,7 @@ void initDashboardRoutes(Express::Router & router);
 void getUL(Request & req, Response & res);
 void getDL(Request & req, Response & res);
 void getThroughput(Request & req, Response & res);
-Json::Value _initJson(string stat);
+Json::Value _initJson(string stat, string unit);
 
 
 #endif

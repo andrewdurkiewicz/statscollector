@@ -22,26 +22,24 @@ using namespace Express;
 SQLite:: Database db("/fl0/StatsCollector.db", SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
 string q = "select * from stats where Time";    
 
-Json::Value _initJson(string stat){
+Json::Value _initJson(string stat, string unit){
     Json::Value proto_response;
-    Json::Value proto_statistic;
-    Json::Value proto_unit;
-    proto_statistic["Stat"] = stat;
-    proto_unit["Unit"] = "Kb/s"; //Rate
-    proto_response["Data"] = Json::arrayValue;
-
+    proto_response["Data"] = Json::arrayValue; //Where the Values go
+    proto_response["Stat"] = stat; //What statistic is being measured
+    proto_response["Unit"] = unit; //Unit for y-axis
+    return proto_response;
     return proto_response;
 }
 
 void getUL(Request & req, Response & res)
 {
-    SQLite::Statement query(db,q);
-    Json::Value response = _initJson("UL");
+	SQLite::Statement query(db,q);
+    Json::Value response = _initJson("UL", "Kb/s");
     while(query.executeStep())
     {
         Json::Value row;
         row["Time"] = (int) query.getColumn("Time");
-        row["UL"] = (const char *) query.getColumn("UL");
+        row["Value"] = (const char *) query.getColumn("UL");
         response["Data"].append(row);
     }
         /*ofstream o("UL.json");
@@ -51,12 +49,12 @@ void getUL(Request & req, Response & res)
 void getDL(Request & req, Response & res)
 {
     SQLite::Statement query(db,q);
-    Json::Value response = _initJson("DL");
+    Json::Value response = _initJson("DL", "Kb/s");
     while(query.executeStep())
     {
         Json::Value row;
         row["Time"] = (int) query.getColumn("Time");
-        row["DL"] = (const char *) query.getColumn("DL");
+        row["Value"] = (const char *) query.getColumn("DL");
         response["Data"].append(row);
     }
         /*ofstream o("DL.json");
@@ -68,12 +66,12 @@ void getDL(Request & req, Response & res)
 void getThroughput(Request & req, Response & res)
 {
     SQLite::Statement query(db,q);
-    Json::Value response = _initJson("Throughput");
+    Json::Value response = _initJson("Throughput", "Kb/s");
     while(query.executeStep())
     {
         Json::Value row;
         row["Time"] = (int) query.getColumn("Time");
-        row["Throughput"] = (const char *) query.getColumn("Throughput");
+        row["Value"] = (const char *) query.getColumn("Throughput");
         response["Data"].append(row);
     }
         /*ofstream o("Throughput.json");
