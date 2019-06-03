@@ -23,9 +23,14 @@ SQLite:: Database db("/fl0/StatsCollector.db", SQLite::OPEN_READWRITE | SQLite::
 string q = "select * from stats where Time";    
 
 Json::Value _initJson(string stat){
-    Json::Value proto_res;
-    proto_res[stat] = Json::arrayValue;
-    return proto_res;
+    Json::Value proto_response;
+    Json::Value proto_statistic;
+    Json::Value proto_unit;
+    proto_statistic["Stat"] = stat;
+    proto_unit["Unit"] = "Kb/s"; //Rate
+    proto_response["Data"] = Json::arrayValue;
+
+    return proto_response;
 }
 
 void getUL(Request & req, Response & res)
@@ -37,7 +42,7 @@ void getUL(Request & req, Response & res)
         Json::Value row;
         row["Time"] = (int) query.getColumn("Time");
         row["UL"] = (const char *) query.getColumn("UL");
-        response["UL"].append(row);
+        response["Data"].append(row);
     }
         /*ofstream o("UL.json");
         o << response << endl;*/
@@ -46,13 +51,13 @@ void getUL(Request & req, Response & res)
 void getDL(Request & req, Response & res)
 {
     SQLite::Statement query(db,q);
-    Json::Value response = _initJson("UL");
+    Json::Value response = _initJson("DL");
     while(query.executeStep())
     {
         Json::Value row;
         row["Time"] = (int) query.getColumn("Time");
-        row["DL"] = (const char *) query.getColumn("UL");
-        response["DL"].append(row);
+        row["DL"] = (const char *) query.getColumn("DL");
+        response["Data"].append(row);
     }
         /*ofstream o("DL.json");
         o << response << endl;*/
@@ -63,13 +68,13 @@ void getDL(Request & req, Response & res)
 void getThroughput(Request & req, Response & res)
 {
     SQLite::Statement query(db,q);
-    Json::Value response = _initJson("UL");
+    Json::Value response = _initJson("Throughput");
     while(query.executeStep())
     {
         Json::Value row;
         row["Time"] = (int) query.getColumn("Time");
-        row["Throughput"] = (const char *) query.getColumn("UL");
-        response["Throughput"].append(row);
+        row["Throughput"] = (const char *) query.getColumn("Throughput");
+        response["Data"].append(row);
     }
         /*ofstream o("Throughput.json");
         o << response << endl;*/
