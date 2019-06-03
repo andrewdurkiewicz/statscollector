@@ -33,6 +33,7 @@
 #include <cmath>    
 
 // ALL INCLUDES AND DECLARATIONS AFTER THIS POINT PRETAIN TO NETWORKING ///////////////////
+/*
 #include <websocketpp/config/asio_no_tls_client.hpp>
 #include <websocketpp/client.hpp>
 
@@ -82,11 +83,12 @@ typedef struct stats_data_s{
 
 std::vector<stats_data_t> conf_data;
 unsigned int handle_alignment = 0;
-
+*/
 // ALL INCLUDES AND DECLARATIONS BEFORE THIS POINT PRETAIN TO NETWORKING ///////////////////
 
 /////////////////// NETWORKING CODE ///////////////////
 
+/*
 // This message handler will be invoked once for each incoming message. It
 // prints the message and then sends a copy of the message back to the server.
 // This might not be necessary in our case. Not sure.
@@ -105,7 +107,7 @@ void on_message(client* c, websocketpp::connection_hdl hdl, message_ptr msg)
     char startTimeStr[100];
     char endTimeStr[100];
 	
-    /* Setup time information*/
+    //Setup time information
     coln_end_time = time(NULL);
     startTimeStruct = localtime(&coln_start_time);
     strftime(startTimeStr,100,"%m/%d/%Y %H:%M",startTimeStruct);
@@ -320,6 +322,7 @@ void on_open(client* c, websocketpp::connection_hdl hdl)
 	coln_start_time = time(NULL);
    
 }
+*/
 /////////////////// NETWORKING CODE ///////////////////
 
 static int callback(void* data, int argc, char** argv, char** azColName) 
@@ -346,7 +349,7 @@ int main(int argc, char* argv[])
 {
 
    /////////////////// NETWORKING CODE ///////////////////
-
+    /*
        // Create a client endpoint
     client c;
 
@@ -384,8 +387,10 @@ int main(int argc, char* argv[])
     } catch (websocketpp::exception const & e) {
         std::cout << e.what() << std::endl;
     }
-
+    */
    /////////////////// NETWORKING CODE ///////////////////
+
+   int alternate = 1;
    for(int i = 0; i<10800; i++)
    {
       cout << i << endl;
@@ -400,7 +405,16 @@ int main(int argc, char* argv[])
       SQL_CMD("ATTACH DATABASE 'StatsCollector' as 'statscollector';");
 
       char buffer[200];
-      sprintf(buffer,"INSERT INTO stats (Time,UL,DL,Throughput) VALUES (%i,%-.2f,%-.2f,%-.2f);",i, i*2.2, i*4.3, i*1.5);
+      //datetime('now','start of year','+i day')
+      sprintf(
+            buffer,
+            "INSERT INTO stats (Time,UL,DL,Throughput) VALUES (%i,%-.2f,%-.2f,%-.2f);",
+            i,
+            i*2.2*alternate,
+            i*4.3*alternate, 
+            i*1.5*alternate
+        );
+      alternate*=-1;
       SQL_CMD(buffer);
       //SQL_CMD("SELECT * FROM stats WHERE 1;");
       sqlite3_close(db);
