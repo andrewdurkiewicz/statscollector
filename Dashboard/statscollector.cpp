@@ -31,7 +31,10 @@
 #include <stdio.h>
 #include <unistd.h>  
 #include <cmath> 
+#include <time.h>
+#include <stdlib.h> 
 using namespace std;   
+
 
 // ALL INCLUDES AND DECLARATIONS AFTER THIS POINT PRETAIN TO NETWORKING ///////////////////
 /*
@@ -348,6 +351,8 @@ char *zErrMsg = 0;
 
 int main(int argc, char* argv[])
 {
+	srand(time(NULL));
+	rand();
 
    /////////////////// NETWORKING CODE ///////////////////
     /*
@@ -391,30 +396,29 @@ int main(int argc, char* argv[])
     */
    /////////////////// NETWORKING CODE ///////////////////
 
-   int alternate = 1;
-   for(int i = 0; i<10080; i++)
+   for(int i = 0; i<21600; i++)
    {
       int rc = sqlite3_open("StatsCollector.db", &db);
       if (rc == 0)
       {
         //checks if database exist, if not, create it and the table
         SQL_CMD("StatsCollector.db");
-        SQL_CMD("CREATE TABLE 'stats' ( 'Time' TEXT NOT NULL, 'UL' BLOB, 'DL' BLOB, 'Throughput' BLOB);");
+        SQL_CMD("CREATE TABLE 'stats' ( 'Time' TEXT NOT NULL, 'UL' REAL, 'DL' REAL, 'Throughput' REAL);");
 
       }
       SQL_CMD("ATTACH DATABASE 'StatsCollector' as 'statscollector';");
-
       char buffer[200];
       //datetime('now','start of year','+i day')
       sprintf(
             buffer,
-            "INSERT INTO stats (Time,UL,DL,Throughput) VALUES (datetime('now', 'start of year', '+%i day'),%-.2f,%-.2f,%-.2f);",
+            "INSERT INTO stats (Time,UL,DL,Throughput) VALUES (datetime('now', 'start of year', '+%i minute'),%-.2f,%-.2f,%-.2f);",
             i,
-            i*2.2*alternate,
-            i*4.3*alternate, 
-            i*1.5*alternate
+            1.0 * (rand() % 30),
+            1.0 * (rand() % 30),
+            1.0 * (rand() % 30)
         );
-      alternate*=-1;
+
+
       SQL_CMD(buffer);
       //SQL_CMD("SELECT * FROM stats WHERE 1;");
       sqlite3_close(db);
