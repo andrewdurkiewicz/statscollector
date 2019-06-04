@@ -22,19 +22,18 @@ using namespace Express;
 SQLite:: Database db("/fl0/StatsCollector.db", SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
 string q = "select * from stats where Time";    
 
-Json::Value _initJson(string stat, string unit){
+Json::Value _initJson(string stat, string s){
     Json::Value proto_response;
     proto_response["Data"] = Json::arrayValue; //Where the Values go
     proto_response["Stat"] = stat; //What statistic is being measured
-    proto_response["Unit"] = unit; //Unit for y-axis
-    return proto_response;
+    proto_response["Unit"] = s; //Unit for y-axis
     return proto_response;
 }
 
 void getUL(Request & req, Response & res)
 {
 	SQLite::Statement query(db,q);
-    Json::Value response = _initJson("UL", "Kb/s");
+    Json::Value response = _initJson("UL", "Kbps");
     while(query.executeStep())
     {
         Json::Value row;
@@ -49,7 +48,7 @@ void getUL(Request & req, Response & res)
 void getDL(Request & req, Response & res)
 {
     SQLite::Statement query(db,q);
-    Json::Value response = _initJson("DL", "Kb/s");
+    Json::Value response = _initJson("DL", "Kbps");
     while(query.executeStep())
     {
         Json::Value row;
@@ -66,7 +65,7 @@ void getDL(Request & req, Response & res)
 void getThroughput(Request & req, Response & res)
 {
     SQLite::Statement query(db,q);
-    Json::Value response = _initJson("Throughput", "Kb/s");
+    Json::Value response = _initJson("Throughput", "Kbps");
     while(query.executeStep())
     {
         Json::Value row;

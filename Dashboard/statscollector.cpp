@@ -30,7 +30,8 @@
 #include <string> 
 #include <stdio.h>
 #include <unistd.h>  
-#include <cmath>    
+#include <cmath> 
+using namespace std;   
 
 // ALL INCLUDES AND DECLARATIONS AFTER THIS POINT PRETAIN TO NETWORKING ///////////////////
 /*
@@ -391,15 +392,14 @@ int main(int argc, char* argv[])
    /////////////////// NETWORKING CODE ///////////////////
 
    int alternate = 1;
-   for(int i = 0; i<10800; i++)
+   for(int i = 0; i<10080; i++)
    {
-      cout << i << endl;
       int rc = sqlite3_open("StatsCollector.db", &db);
       if (rc == 0)
       {
         //checks if database exist, if not, create it and the table
         SQL_CMD("StatsCollector.db");
-        SQL_CMD("CREATE TABLE 'stats' ( 'Time' INTEGER NOT NULL, 'UL' REAL, 'DL' REAL, 'Throughput' REAL);");
+        SQL_CMD("CREATE TABLE 'stats' ( 'Time' TEXT NOT NULL, 'UL' BLOB, 'DL' BLOB, 'Throughput' BLOB);");
 
       }
       SQL_CMD("ATTACH DATABASE 'StatsCollector' as 'statscollector';");
@@ -408,7 +408,7 @@ int main(int argc, char* argv[])
       //datetime('now','start of year','+i day')
       sprintf(
             buffer,
-            "INSERT INTO stats (Time,UL,DL,Throughput) VALUES (%i,%-.2f,%-.2f,%-.2f);",
+            "INSERT INTO stats (Time,UL,DL,Throughput) VALUES (datetime('now', 'start of year', '+%i day'),%-.2f,%-.2f,%-.2f);",
             i,
             i*2.2*alternate,
             i*4.3*alternate, 
