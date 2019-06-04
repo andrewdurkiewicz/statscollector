@@ -396,7 +396,7 @@ int main(int argc, char* argv[])
     */
    /////////////////// NETWORKING CODE ///////////////////
 
-   for(int i = 0; i<21600; i++)
+   for(int i = 0; i<10000; i++)
    {
       int rc = sqlite3_open("StatsCollector.db", &db);
       if (rc == 0)

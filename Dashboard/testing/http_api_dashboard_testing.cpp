@@ -6,12 +6,13 @@ Date: May 30, 2019
 
 #include <http_api_dashboard_testing.h>
 #include <fstream>
-#include <jsoncpp/json/json.h>
+#include <json/json.h>
 #include <sqlite3.h>
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <iostream>
 #include <iomanip>
-
+#include <cstring>
+#include <string>
 using namespace std;
 //using namespace Express;
 //export LD_LIBRARY_PATH=.
@@ -24,9 +25,9 @@ string q = "select * from stats where Time";
 
 Json::Value _initJson(string stat, string unit){
     Json::Value proto_response;
-    proto_response["Data"] = Json::arrayValue; //Where the Values go
-    proto_response["A"] = stat; //What statistic is being measured
-    proto_response["B"] = unit; //Unit for y-axis
+    //proto_response["Data"] = Json::arrayValue; //Where the Values go
+    proto_response["A"] = Json::StaticString(stat.c_str()); //What statistic is being measured
+    proto_response["B"] = Json::StaticString(unit.c_str()); //Unit for y-axis
     return proto_response;
 }
 
@@ -37,9 +38,9 @@ void getUL()
     while(query.executeStep())
     {
         Json::Value row;
-        row["Time"] = (const char *) query.getColumn("Time");
-        row["Value"] = (const char *) query.getColumn("UL");
-        response["Data"].append(row);
+        row["A"] = Json::StaticString(query.getColumn("Time").getString().c_str());
+        row["B"] = Json::StaticString(query.getColumn("UL").getString().c_str());
+        response["C"].append(row);
     }
         ofstream o("UL.json");
         o << response << endl;
@@ -51,9 +52,9 @@ void getDL()
     while(query.executeStep())
     {
         Json::Value row;
-        row["Time"] = (const char *) query.getColumn("Time");
-        row["Value"] = (const char *) query.getColumn("DL");
-        response["Data"].append(row);
+        row["A"] = Json::StaticString(query.getColumn("Time").getString().c_str());
+        row["B"] = Json::StaticString(query.getColumn("DL").getString().c_str());
+        response["C"].append(row);
     }
         ofstream o("DL.json");
         o << response << endl;
@@ -67,9 +68,9 @@ void getThroughput()
     while(query.executeStep())
     {
         Json::Value row;
-        row["Time"] = (const char *) query.getColumn("Time");
-        row["Value"] = (const char *) query.getColumn("Throughput");
-        response["Data"].append(row);
+        row["A"] = Json::StaticString(query.getColumn("Time").getString().c_str());
+        row["B"] = Json::StaticString(query.getColumn("Throughput").getString().c_str());
+        response["C"].append(row);
     }
         ofstream o("Throughput.json");
         o << response << endl;

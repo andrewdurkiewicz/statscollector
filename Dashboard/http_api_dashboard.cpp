@@ -37,7 +37,7 @@ void getUL(Request & req, Response & res)
     while(query.executeStep())
     {
         Json::Value row;
-        row["Time"] = (int) query.getColumn("Time");
+        row["Time"] = (const char *)  query.getColumn("Time");
         row["Value"] = (const char *) query.getColumn("UL");
         response["Data"].append(row);
     }
@@ -52,7 +52,7 @@ void getDL(Request & req, Response & res)
     while(query.executeStep())
     {
         Json::Value row;
-        row["Time"] = (int) query.getColumn("Time");
+        row["Time"] = (const char *)  query.getColumn("Time");
         row["Value"] = (const char *) query.getColumn("DL");
         response["Data"].append(row);
     }
@@ -69,7 +69,7 @@ void getThroughput(Request & req, Response & res)
     while(query.executeStep())
     {
         Json::Value row;
-        row["Time"] = (int) query.getColumn("Time");
+        row["Time"] = (const char *)  query.getColumn("Time");
         row["Value"] = (const char *) query.getColumn("Throughput");
         response["Data"].append(row);
     }
