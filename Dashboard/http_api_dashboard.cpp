@@ -84,3 +84,4 @@ void initDashboardRoutes(Router & router)
     router.get("/DL", getDL);
     router.get("/Throughput", getThroughput);
 }
+
