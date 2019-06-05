@@ -23,24 +23,24 @@ using namespace std;
 SQLite:: Database db("StatsCollector.db", SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
 string q = "select * from stats where Time";    
 
-Json::Value _initJson(string stat, string unit){
+Json::Value _initJson(string stat, string s){
     Json::Value proto_response;
-    //proto_response["Data"] = Json::arrayValue; //Where the Values go
-    proto_response["A"] = Json::StaticString(stat.c_str()); //What statistic is being measured
-    proto_response["B"] = Json::StaticString(unit.c_str()); //Unit for y-axis
+    proto_response["Data"] = Json::arrayValue; //Where the Values go
+    proto_response["Stat"] = stat; //What statistic is being measured
+    proto_response["Unit"] = s; //Unit for y-axis
     return proto_response;
 }
 
 void getUL()
 {
-	SQLite::Statement query(db,q);
-    Json::Value response = _initJson("UL", "Kb/s");
+    SQLite::Statement query(db,q);
+    Json::Value response = _initJson("UL", "Kbps");
     while(query.executeStep())
     {
         Json::Value row;
-        row["A"] = Json::StaticString(query.getColumn("Time").getString().c_str());
-        row["B"] = Json::StaticString(query.getColumn("UL").getString().c_str());
-        response["C"].append(row);
+        row["Time"] = (const char *)  query.getColumn("Time");
+        row["Value"] = (const char *) query.getColumn("UL");
+        response["Data"].append(row);
     }
         ofstream o("UL.json");
         o << response << endl;
@@ -48,13 +48,13 @@ void getUL()
 void getDL()
 {
     SQLite::Statement query(db,q);
-    Json::Value response = _initJson("DL", "Kb/s");
+    Json::Value response = _initJson("DL", "Kbps");
     while(query.executeStep())
     {
         Json::Value row;
-        row["A"] = Json::StaticString(query.getColumn("Time").getString().c_str());
-        row["B"] = Json::StaticString(query.getColumn("DL").getString().c_str());
-        response["C"].append(row);
+        row["Time"] = (const char *)  query.getColumn("Time");
+        row["Value"] = (const char *) query.getColumn("DL");
+        response["Data"].append(row);
     }
         ofstream o("DL.json");
         o << response << endl;
@@ -64,13 +64,13 @@ void getDL()
 void getThroughput()
 {
     SQLite::Statement query(db,q);
-    Json::Value response = _initJson("Throughput", "Kb/s");
+    Json::Value response = _initJson("Throughput", "Kbps");
     while(query.executeStep())
     {
         Json::Value row;
-        row["A"] = Json::StaticString(query.getColumn("Time").getString().c_str());
-        row["B"] = Json::StaticString(query.getColumn("Throughput").getString().c_str());
-        response["C"].append(row);
+        row["Time"] = (const char *)  query.getColumn("Time");
+        row["Value"] = (const char *) query.getColumn("Throughput");
+        response["Data"].append(row);
     }
         ofstream o("Throughput.json");
         o << response << endl;
