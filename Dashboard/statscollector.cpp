@@ -396,7 +396,7 @@ int main(int argc, char* argv[])
     */
    /////////////////// NETWORKING CODE ///////////////////
 
-   for(int i = 0; i<10000; i++)
+   for(int i = 0; i<21600; i+=10)
    {
       int rc = sqlite3_open("StatsCollector.db", &db);
       if (rc == 0)
@@ -411,7 +411,7 @@ int main(int argc, char* argv[])
       //datetime('now','start of year','+i day')
       sprintf(
             buffer,
-            "INSERT INTO stats (Time,UL,DL,Throughput) VALUES (datetime('now', 'start of year', '+%i minute'),%-.2f,%-.2f,%-.2f);",
+            "INSERT INTO stats (Time,UL,DL,Throughput) VALUES (datetime('now', '-15 day', '+%i minute'),%-.2f,%-.2f,%-.2f);",
             i,
             1.0 * (rand() % 30),
             1.0 * (rand() % 30),
