@@ -21,7 +21,7 @@ using namespace std;
 
 
 SQLite:: Database db("StatsCollector.db", SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-string q = "Select * from stats where Time between date('now','-7 days') and date('now');";    
+string q = "Select * from stats where Time between date('now','-10 days') and date('now');";    
 
 Json::Value _initJson(string stat, string s){
     Json::Value proto_response;

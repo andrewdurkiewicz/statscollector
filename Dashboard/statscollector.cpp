@@ -396,8 +396,10 @@ int main(int argc, char* argv[])
     */
    /////////////////// NETWORKING CODE ///////////////////
 
-   for(int i = 0; i<21600; i+=10)
-   {
+   /*for(int i = 0; i<60000; i+=10)
+   {*/
+   while(true){
+    
       int rc = sqlite3_open("StatsCollector.db", &db);
       if (rc == 0)
       {
@@ -409,21 +411,29 @@ int main(int argc, char* argv[])
       SQL_CMD("ATTACH DATABASE 'StatsCollector' as 'statscollector';");
       char buffer[200];
       //datetime('now','start of year','+i day')
-      sprintf(
+      /*sprintf(
             buffer,
-            "INSERT INTO stats (Time,UL,DL,Throughput) VALUES (datetime('now', '-15 day', '+%i minute'),%-.2f,%-.2f,%-.2f);",
+            "INSERT INTO stats (Time,UL,DL,Throughput) VALUES (datetime('now', 'localtime','-30 minutes', '+%i seconds'),%-.2f,%-.2f,%-.2f);",
             i,
             1.0 * (rand() % 30),
             1.0 * (rand() % 30),
             1.0 * (rand() % 30)
-        );
+        );*/
+            sprintf(
+        buffer,
+        "INSERT INTO stats (Time,UL,DL,Throughput) VALUES (datetime('now', 'localtime'),%-.2f,%-.2f,%-.2f);",
+        1.0 * (rand() % 30),
+        1.0 * (rand() % 30),
+        1.0 * (rand() % 30)
+    );
+        SQL_CMD(buffer);
+        SQL_CMD("Delete from stats where Time < datetime('now','localtime','-15 minutes');");
 
-
-      SQL_CMD(buffer);
+      //SQL_CMD(buffer);
       //SQL_CMD("SELECT * FROM stats WHERE 1;");
       sqlite3_close(db);
 
-      //usleep(60*pow(10,6)); //sleep for 1 minute 
+      usleep(pow(10,6)); //sleep for 1 minute 
 
    }
 
