@@ -34,7 +34,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include "json/json.h"
-#include <tickLib.h>
+#include "tickLib.h"
 #include "ts100mhz.h"
 #include "utilsLib.h"
 

@@ -29,12 +29,13 @@
 #include <sqlite3.h> 
 #include <string> 
 #include <stdio.h>
-#include <unistd.h>  
+#include <unistd.h> 
+#include <math.h>   
 #include <cmath> 
 #include <time.h>
 #include <stdlib.h> 
 using namespace std;   
-
+#define PI 3.14159265
 
 // ALL INCLUDES AND DECLARATIONS AFTER THIS POINT PRETAIN TO NETWORKING ///////////////////
 /*
@@ -398,6 +399,10 @@ int main(int argc, char* argv[])
 
    /*for(int i = 0; i<60000; i+=10)
    {*/
+   double angle = 0.0;
+   double begin1 = 0.0;
+   double begin2 = 90.0;
+   double begin3 = 180.0;
    while(true){
     
       int rc = sqlite3_open("StatsCollector.db", &db);
@@ -422,17 +427,17 @@ int main(int argc, char* argv[])
             sprintf(
         buffer,
         "INSERT INTO stats (Time,UL,DL,Throughput) VALUES (datetime('now', 'localtime'),%-.2f,%-.2f,%-.2f);",
-        1.0 * (rand() % 30),
-        1.0 * (rand() % 30),
-        1.0 * (rand() % 30)
+        sin((begin1 + angle) * PI/180.0),
+        sin((begin2 + angle) * PI/180.0),
+        sin((begin3 + angle) * PI/180.0)
     );
         SQL_CMD(buffer);
-        SQL_CMD("Delete from stats where Time < datetime('now','localtime','-15 minutes');");
+        SQL_CMD("Delete from stats where Time < datetime('now','localtime','-8 minutes');");
 
       //SQL_CMD(buffer);
       //SQL_CMD("SELECT * FROM stats WHERE 1;");
       sqlite3_close(db);
-
+      angle++;
       usleep(pow(10,6)); //sleep for 1 minute 
 
    }
