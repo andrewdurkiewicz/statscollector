@@ -21,7 +21,7 @@ using namespace std;
 
 
 SQLite:: Database db("StatsCollector.db", SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-string q = "Select * from stats where Time between date('now','-10 days') and date('now');";    
+string q = "Select * from stats where Time between datetime('now','localtime','-10 days') and datetime('now', 'localtime');";    
 
 Json::Value _initJson(string stat, string s){
     Json::Value proto_response;
@@ -31,55 +31,59 @@ Json::Value _initJson(string stat, string s){
     return proto_response;
 }
 
-void getUL()
+void getRx()
 {
     SQLite::Statement query(db,q);
-    Json::Value response = _initJson("UL", "Kbps");
+    Json::Value response = _initJson("Rx", "Mbps");
     while(query.executeStep())
     {
         Json::Value row;
         row["Time"] = (const char *)  query.getColumn("Time");
-        row["Value"] = (const char *) query.getColumn("UL");
+        row["V4"] = (const char *) query.getColumn("RxV4");
+        row["V6"] = (const char *) query.getColumn("RxV6");
+
         response["Data"].append(row);
     }
-        ofstream o("UL.json");
+        ofstream o("Rx.json");
         o << response << endl;
 }
-void getDL()
+void getTx()
 {
     SQLite::Statement query(db,q);
-    Json::Value response = _initJson("DL", "Kbps");
+    Json::Value response = _initJson("Tx", "Mbps");
     while(query.executeStep())
     {
         Json::Value row;
         row["Time"] = (const char *)  query.getColumn("Time");
-        row["Value"] = (const char *) query.getColumn("DL");
+        row["V4"] = (const char *) query.getColumn("TxV4");
+        row["V6"] = (const char *) query.getColumn("TxV6");
         response["Data"].append(row);
     }
-        ofstream o("DL.json");
+        ofstream o("Tx.json");
         o << response << endl;
 
 }
 
-void getThroughput()
+void getMx() //ManTRx
 {
     SQLite::Statement query(db,q);
-    Json::Value response = _initJson("Throughput", "Kbps");
+    Json::Value response = _initJson("Mx", "Kbps");
     while(query.executeStep())
     {
         Json::Value row;
         row["Time"] = (const char *)  query.getColumn("Time");
-        row["Value"] = (const char *) query.getColumn("Throughput");
+        row["Tx"] = (const char *) query.getColumn("MTx");
+        row["Rx"] = (const char *) query.getColumn("MRx");
         response["Data"].append(row);
     }
-        ofstream o("Throughput.json");
+        ofstream o("Mx.json");
         o << response << endl;
 }
 int main()
 {
-    getUL();
-    getDL();
-    getThroughput();
+    getRx();
+    getTx();
+    getMx();
     return 0;
 }
 /*void initDashboardRoutes(Router & router)

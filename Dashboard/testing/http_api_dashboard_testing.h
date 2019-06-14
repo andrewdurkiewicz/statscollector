@@ -10,10 +10,10 @@ using namespace std;
 
 
 //void initDashboardRoutes(Express::Router & router);
-void getUL();
-void getDL();
-void getThroughput();
-Json::Value _initJson(string stat);
+void getRx();
+void getTx();
+void getMx();
+Json::Value _initJson(string stat, string s);
 
 
 #endif

@@ -429,7 +429,7 @@ int main(int argc, char* argv[])
         );*/
             sprintf(
         buffer,
-        "INSERT INTO stats (Time,RxV4,RxV6,TxV4, TxV6, MRx, MTx) VALUES (datetime('now', 'localtime'),%-.2f,%-.2f,%-.2f,%-.2f,%-.2f,%-.2f);",
+        "INSERT INTO stats (Time,RxV4,RxV6,TxV4, TxV6, MRx, MTx) VALUES (datetime('now', 'localtime','-4 hours'),%-.2f,%-.2f,%-.2f,%-.2f,%-.2f,%-.2f);",
 RandomFloat(2,10),
 RandomFloat(2,10),
 RandomFloat(.5,4),
@@ -439,7 +439,7 @@ RandomFloat(0.1,0.8)
 
     );
         SQL_CMD(buffer);
-        SQL_CMD("Delete from stats where Time < datetime('now','localtime','-8 minutes');");
+        SQL_CMD("Delete from stats where Time > datetime('now','localtime','-4 hours','-8 minutes');");
 
       //SQL_CMD(buffer);
       //SQL_CMD("SELECT * FROM stats WHERE 1;");
@@ -454,4 +454,5 @@ void SQL_CMD(string command){
 
    sqlite3_exec(db, command.c_str(), callback, NULL, NULL);
 }
+
 

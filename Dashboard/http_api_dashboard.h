@@ -7,6 +7,8 @@ Date: May 30, 2019
 #ifndef HTTP_API_DASHBOARD_H
 #define HTTP_API_DASHBOARD_H
 
+using namespace std;
+using namespace Express; 
 
 void initDashboardRoutes(Express::Router & router);
 void getUL(Request & req, Response & res);

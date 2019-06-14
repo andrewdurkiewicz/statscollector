@@ -434,12 +434,12 @@ RandomFloat(2,10),
 RandomFloat(2,10),
 RandomFloat(.5,4),
 RandomFloat(.5,4),
-RandomFloat(0.1, 0.8),
+RandomFloat(0.1, 4),
 RandomFloat(0.1,0.8)
 
     );
         SQL_CMD(buffer);
-        SQL_CMD("Delete from stats where Time < datetime('now','localtime','-8 minutes');");
+        SQL_CMD("Delete from stats where Time < datetime('now','localtime','-15 minutes');");
 
       //SQL_CMD(buffer);
       //SQL_CMD("SELECT * FROM stats WHERE 1;");
