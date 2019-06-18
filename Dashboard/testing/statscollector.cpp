@@ -355,7 +355,8 @@ static int callback(void* data, int argc, char** argv, char** azColName)
 void SQL_CMD(string comand);
 sqlite3 *db;
 char *zErrMsg = 0;
-
+int day_counter = 0;
+int max_counter = 0;
 int main(int argc, char* argv[])
 {
 	srand(time(NULL));
@@ -413,33 +414,54 @@ int main(int argc, char* argv[])
       {
         //checks if database exist, if not, create it and the table
         SQL_CMD("StatsCollector.db");
-        SQL_CMD("CREATE TABLE 'stats' ( 'Time' TEXT NOT NULL, 'RxV4' REAL,'RxV6' REAL,'TxV4' REAL,'TxV6' REAL,'MRx' REAL,'MTx' REAL);");
+        SQL_CMD("CREATE TABLE 'live' ( 'Time' TEXT NOT NULL, 'RxV4' REAL,'RxV6' REAL,'TxV4' REAL,'TxV6' REAL,'MRx' REAL,'MTx' REAL);");
+        SQL_CMD("CREATE TABLE 'day' ( 'Time' TEXT NOT NULL, 'RxV4' REAL,'RxV6' REAL,'TxV4' REAL,'TxV6' REAL,'MRx' REAL,'MTx' REAL);");
+        SQL_CMD("CREATE TABLE 'max' ( 'Time' TEXT NOT NULL, 'RxV4' REAL,'RxV6' REAL,'TxV4' REAL,'TxV6' REAL,'MRx' REAL,'MTx' REAL);");
+
 
       }
-      SQL_CMD("ATTACH DATABASE 'StatsCollector' as 'statscollector';");
-      char buffer[200];
-      //datetime('now','start of year','+i day')
-      /*sprintf(
-            buffer,
-            "INSERT INTO stats (Time,UL,DL,Throughput) VALUES (datetime('now', 'localtime','-30 minutes', '+%i seconds'),%-.2f,%-.2f,%-.2f);",
-            i,
-            1.0 * (rand() % 30),
-            1.0 * (rand() % 30),
-            1.0 * (rand() % 30)
-        );*/
-            sprintf(
-        buffer,
-        "INSERT INTO stats (Time,RxV4,RxV6,TxV4, TxV6, MRx, MTx) VALUES (datetime('now', 'localtime'),%-.2f,%-.2f,%-.2f,%-.2f,%-.2f,%-.2f);",
-RandomFloat(2,10),
-RandomFloat(2,10),
-RandomFloat(.5,4),
-RandomFloat(.5,4),
-RandomFloat(0.1, 4),
-RandomFloat(0.1,0.8)
+      char buffer1[200];
+        sprintf(buffer1,
+        "INSERT INTO live (Time,RxV4,RxV6,TxV4, TxV6, MRx, MTx) VALUES (datetime('now', 'localtime'),%-.2f,%-.2f,%-.2f,%-.2f,%-.2f,%-.2f);",
+                RandomFloat(2,10),
+                RandomFloat(2,10),
+                RandomFloat(.5,4),
+                RandomFloat(.5,4),
+                RandomFloat(0.1, 0.8),
+                RandomFloat(0.1,0.8));
+        
+        SQL_CMD(buffer1);
+        day_counter++;
+        max_counter++;
+        SQL_CMD("Delete from live where Time < datetime('now','localtime','-1 hour');");
+        if(day_counter == 300)
+        {
+            SQL_CMD("INSERT INTO day (Time, RxV4, RxV6, TxV4, TxV6, MRx, MTx) VALUES" 
+            "(datetime('now', 'localtime'),"  
+            "(select avg(RxV4) from live where Time > datetime('now','localtime','-5 minutes')),"
+            "(select avg(RxV6) from live where Time > datetime('now','localtime','-5 minutes')),"
+            "(select avg(TxV4) from live where Time > datetime('now','localtime','-5 minutes')),"
+            "(select avg(TxV6) from live where Time > datetime('now','localtime','-5 minutes')),"
+            "(select avg(MRx) from live where Time > datetime('now','localtime','-5 minutes')),"
+            "(select avg(MTx) from live where Time > datetime('now','localtime','-5 minutes')));");
+            SQL_CMD("Delete from day where Time < datetime('now','localtime','-1 day');");
 
-    );
-        SQL_CMD(buffer);
-        SQL_CMD("Delete from stats where Time < datetime('now','localtime','-15 minutes');");
+            day_counter = 0;
+        }
+        if(max_counter == 3600)
+        {
+            SQL_CMD("INSERT INTO max (Time, RxV4, RxV6, TxV4, TxV6, MRx, MTx) VALUES" 
+            "(datetime('now', 'localtime'),"  
+            "(select avg(RxV4) from live where Time > datetime('now','localtime','-1 hour')),"
+            "(select avg(RxV6) from live where Time > datetime('now','localtime','-1 hour')),"
+            "(select avg(TxV4) from live where Time > datetime('now','localtime','-1 hour')),"
+            "(select avg(TxV6) from live where Time > datetime('now','localtime','-1 hour')),"
+            "(select avg(MRx) from live where Time > datetime('now','localtime','-1 hour')),"
+            "(select avg(MTx) from live where Time > datetime('now','localtime','-1 hour')));");
+            SQL_CMD("Delete from day where Time < datetime('now','localtime','-15 days');");
+
+            max_counter = 0;
+        }
 
       //SQL_CMD(buffer);
       //SQL_CMD("SELECT * FROM stats WHERE 1;");
