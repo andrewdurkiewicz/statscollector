@@ -27,10 +27,18 @@
 
 #include "websocketpp/config/asio_no_tls_client.hpp"
 #include "websocketpp/client.hpp"
-
+#include <iostream> 
+#include <sqlite3.h> 
+#include <string> 
+#include <stdio.h>
+#include <unistd.h> 
+#include <math.h>   
+#include <cmath> 
+#include <time.h>
+#include <stdlib.h> 
 #include <iostream>
 #include <fstream>
-
+#include <time.h>
 #include "json/json.h"
 #include <unistd.h>
 
@@ -39,59 +47,224 @@ typedef websocketpp::client<websocketpp::config::asio_client> client;
 using websocketpp::lib::placeholders::_1;
 using websocketpp::lib::placeholders::_2;
 using websocketpp::lib::bind;
+time_t current_time, init_time;
+double delta_time;
 
-int period;
+typedef websocketpp::config::asio_client::message_type::ptr message_ptr;
 std::string input_file ="";
 std::string header_str="headers:";
 std::string data_str="data:";
-// pull out the type of messages sent by our config
-typedef websocketpp::config::asio_client::message_type::ptr message_ptr;
 
 
+/*Initialize SQLitecpp parameters*/
+void SQL_CMD(std::string comand);
+static int callback(void* data, int argc, char** argv, char** azColName);
+sqlite3 *db;
+char *zErrMsg = 0;
+
+/*SQLite table parameters*/
+int day_counter = 0;
+int max_counter = 0;
+
+static float RxV4_WAN_prev, RxV6_WAN_prev, TxV4_WAN_prev, TxV6_WAN_prev, RMx_prev, TMx_prev = nanf("0");
+
+// bool connectDB() {
+//     if (false == isOpenDB && sqlite3_open(DB, &dbfile) == SQLITE_OK) {
+//         isOpenDB = true;
+//     }
+//     return isOpenDB;
+// }
+/*----------------------------------------------------------------------
+Function: callback(void* data, int argc, char** argv, char** azColName) 
+Data Change Notification Callbacks  
+Purpose: Registers a callback function with the database connection identified by the first argument 
+            to be invoked whenever a row is updated, inserted or deleted in a rowid table.
+            This function is essential for the functionality of SQL_CMD(std::string command)
+------------------------------------------------------------------------*/
+static int callback(void* data, int argc, char** argv, char** azColName) 
+{ 
+    int i; 
+    fprintf(stderr, "%s: ", (const char*)data); 
+  
+    for (i = 0; i < argc; i++) 
+    { 
+        printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL"); 
+    } 
+  
+    printf("\n"); 
+    return 0; 
+} 
+/*----------------------------------------------------------------------
+Function: SQL_CMD(std::string command)
+Purpose: Executes common sqlite3 commands with the command as an input string 'command'
+------------------------------------------------------------------------*/
+void SQL_CMD(std::string command)
+{
+   sqlite3_exec(db, command.c_str(), callback, NULL, NULL);
+}
 
 // This message handler will be invoked once for each incoming message. It
 // prints the message and then sends a copy of the message back to the server.
 void on_message(client* c, websocketpp::connection_hdl hdl, message_ptr msg) 
 {
+    if(isnanf(RxV4_WAN_prev))
+    {
+        /*takes first time stamp*/
+         time(&init_time);
+    }
+    else
+    {
+        time(&current_time);
+        delta_time = difftime(current_time, init_time);
+        init_time = current_time;
+        //std::cout << float(delta_time) << " seconds" << std::endl;
+    }
     std::string results = msg->get_payload();
     std::string parsed_data;
-
     size_t found_header = results.find("headers:");
-    std::cout << "on msg TEST\n" << results << std::endl;
     size_t found_data = results.find("data:");   
     
     if (found_header!=std::string::npos)
     {
-	parsed_data = results.substr(found_header+header_str.length(), results.length());
+	    parsed_data = results.substr(found_header+5, results.length());
     }
     else if (found_data!=std::string::npos)
     {
-        parsed_data = results.substr(found_header+data_str.length(), results.length());
+        parsed_data = results.substr(found_data+5, results.length());
     }
     else
     {
-	//something else
-	return;
+	    //something else
+	    return;
     }
+
      
     Json::Value pdata;
     Json::StyledWriter styledWriter;
     Json::Reader reader;
     bool parsingSuccessful = reader.parse(parsed_data, pdata);
+    std::string RxV4_WAN, RxV6_WAN, TxV4_WAN, TxV6_WAN, RxV4_LAN, RxV6_LAN, TxV4_LAN, TxV6_LAN, RMx, TMx;
+
     if (parsingSuccessful)
     {
-        std::cout<< styledWriter.write(pdata) << std::endl;
+        /*Grabs the stats values from the parsed json data*/
+        RxV4_WAN = pdata.get("system_stats_curr_intf_wan_v4_pkt_stats_rx_pkt_stats_tot_bytes", "A Default Value if not exists" ).asString();
+        RxV6_WAN = pdata.get("system_stats_curr_intf_wan_v6_pkt_stats_rx_pkt_stats_tot_bytes", "A Default Value if not exists" ).asString();
+        TxV4_WAN = pdata.get("system_stats_curr_intf_wan_v4_pkt_stats_tx_pkt_stats_tot_bytes", "A Default Value if not exists" ).asString();
+        TxV6_WAN = pdata.get("system_stats_curr_intf_wan_v6_pkt_stats_tx_pkt_stats_tot_bytes", "A Default Value if not exists" ).asString();
+        RxV4_LAN = pdata.get("system_stats_curr_intf_lan_v4_pkt_stats_rx_pkt_stats_tot_bytes", "A Default Value if not exists" ).asString();
+        RxV6_LAN = pdata.get("system_stats_curr_intf_lan_v6_pkt_stats_rx_pkt_stats_tot_bytes", "A Default Value if not exists" ).asString();
+        TxV4_LAN = pdata.get("system_stats_curr_intf_lan_v4_pkt_stats_tx_pkt_stats_tot_bytes", "A Default Value if not exists" ).asString();
+        TxV6_LAN = pdata.get("system_stats_curr_intf_lan_v6_pkt_stats_tx_pkt_stats_tot_bytes", "A Default Value if not exists" ).asString();
+        RMx = pdata.get("system_stats_curr_intf_v6_mgmt_pkt_stats_rx_pkt_stats_tot_bytes", "A Default Value if not exists" ).asString();
+        TMx = pdata.get("system_stats_curr_intf_v6_mgmt_pkt_stats_tx_pkt_stats_tot_bytes", "A Default Value if not exists" ).asString();
     }
 
-    //for(Json::ValueIterator itr = parsed_data.begin() ; itr != parsed_data.end() ; itr++)
-    //{
-	//printf("%s\n",itr.key().asString().c_str());
-	//printf("\n");
-	    //printf("%s\n",itr.key().asString().c_str());
-    //}
+    if(RxV4_LAN != "A Default Value if not exists")
+    {
+        int rc = sqlite3_open("/fl0/StatsCollector.db", &db);
+        if (rc == 0)
+        {
+            /**checks for open database. If rc == 0, the database is generated**/
+            SQL_CMD("/fl0/StatsCollector.db");
+            SQL_CMD("CREATE TABLE 'live' ( 'Time' TEXT NOT NULL, 'RxV4' REAL,'RxV6' REAL,'TxV4' REAL,'TxV6' REAL,'MRx' REAL,'MTx' REAL);");
+            SQL_CMD("CREATE TABLE 'day' ( 'Time' TEXT NOT NULL, 'RxV4' REAL,'RxV6' REAL,'TxV4' REAL,'TxV6' REAL,'MRx' REAL,'MTx' REAL);");
+            SQL_CMD("CREATE TABLE 'max' ( 'Time' TEXT NOT NULL, 'RxV4' REAL,'RxV6' REAL,'TxV4' REAL,'TxV6' REAL,'MRx' REAL,'MTx' REAL);");
+        }
+
+        SQL_CMD("ATTACH DATABASE '/fl0/StatsCollector' as 'statscollector';");
+        
+        if(isnanf(RxV4_WAN_prev))
+        {
+            /*First iteration is always empty, this sets up the baseline for forward progression*/
+            RxV4_WAN_prev = 1.0*std::atoi(RxV4_WAN.c_str());
+            RxV6_WAN_prev = 1.0*std::atoi(RxV6_WAN.c_str()) - 1.0*std::atoi(RMx.c_str());
+            TxV4_WAN_prev = 1.0*std::atoi(TxV4_WAN.c_str());
+            TxV6_WAN_prev = 1.0*std::atoi(TxV6_WAN.c_str()) - 1.0*std::atoi(TMx.c_str());
+            RMx_prev = 1.0*std::atoi(RMx.c_str());
+            TMx_prev = 1.0*std::atoi(TMx.c_str());
+        }
+        else
+        {
+
+
+        std::cout << "RxV4-WAN: " << RxV4_WAN  << std::endl;
+        std::cout << "RxV6-WAN: " << RxV6_WAN  << std::endl;
+        std::cout << "TxV4-WAN: " << TxV4_WAN  << std::endl;
+        std::cout << "TxV6-WAN: " << TxV6_WAN  << std::endl;
+        std::cout << "RxV4-LAN: " << RxV4_LAN  << std::endl;
+        std::cout << "RxV6-LAN: " << RxV6_LAN  << std::endl;
+        std::cout << "TxV4-LAN: " << TxV4_LAN  << std::endl;
+        std::cout << "TxV6-LAN: " << TxV6_LAN  << std::endl;
+        std::cout << "RMx: " << RMx  << std::endl;
+        std::cout << "TMx: " << TMx  << std::endl << std::endl;
+
+
+            char buffer[200];
+            sprintf(buffer,
+                "INSERT INTO live (Time,RxV4,RxV6,TxV4, TxV6, MRx, MTx) VALUES (datetime('now','localtime', '-4 hours'),%-.2f,%-.2f,%-.2f,%-.2f,%-.2f,%-.2f);",
+                    (1.0*std::atoi(RxV4_WAN.c_str()) - RxV4_WAN_prev) / (1024*1024*delta_time),
+                        ((1.0*std::atoi(RxV6_WAN.c_str())) - RxV6_WAN_prev - 1.0*std::atoi(RMx.c_str())) / (1024*1024*delta_time),
+                            (1.0*std::atoi(TxV4_WAN.c_str()) - TxV4_WAN_prev) / (1024*1024*delta_time),
+                                ((1.0*std::atoi(TxV6_WAN.c_str())) - TxV6_WAN_prev - 1.0*std::atoi(TMx.c_str())) / (1024*1024*delta_time),
+                                    (1.0*std::atoi(RMx.c_str()) - RMx_prev) / (1024*delta_time),
+                                        (1.0*std::atoi(TMx.c_str()) - TMx_prev) / (1024*delta_time)
+                );
+        
+            /**Store Previous values for next iteration. Used for delta calculation **/ 
+            RxV4_WAN_prev = 1.0*std::atoi(RxV4_WAN.c_str());
+            RxV6_WAN_prev = 1.0*std::atoi(RxV6_WAN.c_str()) - 1.0*std::atoi(RMx.c_str());
+            TxV4_WAN_prev = 1.0*std::atoi(TxV4_WAN.c_str());
+            TxV6_WAN_prev = 1.0*std::atoi(TxV6_WAN.c_str()) - 1.0*std::atoi(TMx.c_str());
+            RMx_prev = 1.0*std::atoi(RMx.c_str());
+            TMx_prev = 1.0*std::atoi(TMx.c_str());
+            
+            
+            
+            SQL_CMD(buffer);
+            day_counter++;
+            max_counter++;
+            SQL_CMD("Delete from live where Time < datetime('now','localtime','-5 hour');");
+            if(day_counter == 300)
+            {
+                /**Averages last 5 minutes from live into table day**/
+                SQL_CMD("INSERT INTO day (Time, RxV4, RxV6, TxV4, TxV6, MRx, MTx) VALUES" 
+                "(datetime('now', 'localtime', '-4 hours'),"  
+                "(select avg(RxV4) from live where Time > datetime('now','localtime','-4 hours','-5 minutes')),"
+                "(select avg(RxV6) from live where Time > datetime('now','localtime','-4 hours','-5 minutes')),"
+                "(select avg(TxV4) from live where Time > datetime('now','localtime','-4 hours','-5 minutes')),"
+                "(select avg(TxV6) from live where Time > datetime('now','localtime','-4 hours','-5 minutes')),"
+                "(select avg(MRx) from live where Time > datetime('now','localtime','-4 hours','-5 minutes')),"
+                "(select avg(MTx) from live where Time > datetime('now','localtime','-4 hours','-5 minutes')));");
+                SQL_CMD("Delete from day where Time < datetime('now','localtime','-4 hours','-1 day');");
+
+                day_counter = 0;
+            }
+            if(max_counter == 3600)
+            {
+                /**Averages last hour from live into table max**/
+
+                SQL_CMD("INSERT INTO max (Time, RxV4, RxV6, TxV4, TxV6, MRx, MTx) VALUES" 
+                "(datetime('now', 'localtime', '-4 hours'),"  
+                "(select avg(RxV4) from live where Time > datetime('now','localtime','-5 hours')),"
+                "(select avg(RxV6) from live where Time > datetime('now','localtime','-5 hours')),"
+                "(select avg(TxV4) from live where Time > datetime('now','localtime','-5 hours')),"
+                "(select avg(TxV6) from live where Time > datetime('now','localtime','-5 hours')),"
+                "(select avg(MRx) from live where Time > datetime('now','localtime','-5 hours')),"
+                "(select avg(MTx) from live where Time > datetime('now','localtime','-5 hours')));");
+                SQL_CMD("Delete from day where Time < datetime('now','localtime','-15 days');");
+
+                max_counter = 0;
+            }
+            rc = sqlite3_close_v2(db);    
+        }
+    }
+
+
 }
 void on_open(client* c, websocketpp::connection_hdl hdl) 
 {
+
     websocketpp::lib::error_code ec;
     std::ifstream file_input(input_file.c_str());
 	Json::Reader reader;
@@ -127,7 +300,7 @@ void on_open(client* c, websocketpp::connection_hdl hdl)
 	}
 	
     c->send(hdl,output,websocketpp::frame::opcode::text,ec);
-    std::cout << "Message sent : " <<  output << std::endl;
+    //std::cout << "Message sent : " <<  output << std::endl;
     if (ec)
     {
         std::cout << "Echo failed because: " << ec.message() << std::endl;

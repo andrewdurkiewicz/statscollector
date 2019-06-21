@@ -1,7 +1,7 @@
 /*
 Created by Andrew Durkiewicz
 Date: May 30, 2019
-****/
+**/
 
 
 #include <http_api_dashboard.h>
@@ -50,16 +50,19 @@ void getRx(Request & req, Response & res)
 
 	if(findState(conditions,req,res)){
 	    if(req.query["State"] == "Live"){
-		    q = "Select * from stats where Time > dateTime('now','localtime','-4 hours','-2 seconds');";
+		    q = "Select * from live where Time > dateTime('now','localtime','-4 hours','-2 seconds');";
 	    }
 	    else if(req.query["State"] == "Day"){
-		    q = "Select * from stats where Time > dateTime('now','localtime','-4 hours','-1 day');";
+		    q = "Select * from day where Time > dateTime('now','localtime','-4 hours','-1 day');";
 
         }
 	    else if(req.query["State"] == "Max"){
-		    q = "Select * from stats where Time > dateTime('now','localtime','-4 hours','-15 days');";
+		    q = "Select * from max where Time > dateTime('now','localtime','-4 hours','-15 days');";
 
         }
+	else if(req.query["State"] == "Hour"){
+		q = "Select * from live where Time > dateTime('now','localtime','-5 hours');";
+	}
         else{
             res.status(400);
         }
@@ -87,21 +90,25 @@ void getTx(Request & req, Response & res)
     
 	if(findState(conditions,req,res)){
 	    if(req.query["State"] == "Live"){
-		    q = "Select * from stats where Time > dateTime('now','localtime','-4 hours','-2 seconds');";
+		    q = "Select * from live where Time > dateTime('now','localtime','-4 hours','-2 seconds');";
 	    }
 	    else if(req.query["State"] == "Day"){
-		    q = "Select * from stats where Time > dateTime('now','localtime','-4 hours',' -1 days');";
+		    q = "Select * from day where Time > dateTime('now','localtime','-4 hours','-1 day');";
 
         }
 	    else if(req.query["State"] == "Max"){
-		    q = "Select * from stats where Time > dateTime('now','localtime','-4 hours','-15 days');";
+		    q = "Select * from max where Time > dateTime('now','localtime','-4 hours','-15 days');";
 
         }
+	else if(req.query["State"] == "Hour"){
+		q = "Select * from live where Time > dateTime('now','localtime','-5 hours');";
+	}
         else{
             res.status(400);
         }
 
 	    SQLite::Statement query(db,q);
+	    //cout << req.request_uri << endl;
 	    Json::Value response = _initJson("Tx", "Mbps");
 	    while(query.executeStep()){
             Json::Value row;
@@ -123,16 +130,19 @@ void getMx(Request & req, Response & res)
 
 	if(findState(conditions,req,res)){
 	    if(req.query["State"] == "Live"){
-		    q = "Select * from stats where Time > dateTime('now','localtime','-4 hours','-2 seconds');";
+		    q = "Select * from live where Time > dateTime('now','localtime','-4 hours','-2 seconds');";
 	    }
 	    else if(req.query["State"] == "Day"){
-		    q = "Select * from stats where Time > dateTime('now','localtime','-4 hours',' -1 days');";
+		    q = "Select * from day where Time > dateTime('now','localtime','-4 hours','-1 day');";
 
         }
 	    else if(req.query["State"] == "Max"){
-		    q = "Select * from stats where Time > dateTime('now','localtime','-4 hours','-15 days');";
+		    q = "Select * from max where Time > dateTime('now','localtime','-4 hours','-15 days');";
 
         }
+	else if(req.query["State"] == "Hour"){
+		q = "Select * from live where Time > dateTime('now','localtime','-5 hours');";
+	}
         else{
             res.status(400);
         }
@@ -150,6 +160,7 @@ void getMx(Request & req, Response & res)
 
 	    res.send(response);
 	}
+
 }
 
 void initDashboardRoutes(Router & router)
@@ -158,4 +169,5 @@ void initDashboardRoutes(Router & router)
     router.get("/Tx", getTx);
     router.get("/Mx", getMx);
 }
+
 
