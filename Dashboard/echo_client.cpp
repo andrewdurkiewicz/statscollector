@@ -47,8 +47,33 @@ typedef websocketpp::client<websocketpp::config::asio_client> client;
 using websocketpp::lib::placeholders::_1;
 using websocketpp::lib::placeholders::_2;
 using websocketpp::lib::bind;
-time_t current_time, init_time;
+clock_t  prev_time, current_time;
 double delta_time;
+double prev,curr;
+
+struct timeval  tv1;
+
+typedef struct intf_vals
+{
+   unsigned long long prev;
+   unsigned long long curr;
+   unsigned long long delta;
+   float thru;
+}intf_val_t;
+
+//std::vector<intf_val_t> intf_arr;
+intf_val_t LANRxv4;
+intf_val_t LANRxv6;
+intf_val_t LANTxv4;
+intf_val_t LANTxv6;
+
+intf_val_t WANRxv4;
+intf_val_t WANRxv6;
+intf_val_t WANTxv4;
+intf_val_t WANTxv6;
+
+intf_val_t MgmtRx;
+intf_val_t MgmtTx;
 
 typedef websocketpp::config::asio_client::message_type::ptr message_ptr;
 std::string input_file ="";
@@ -66,8 +91,19 @@ char *zErrMsg = 0;
 int day_counter = 0;
 int max_counter = 0;
 
-static float RxV4_WAN_prev, RxV6_WAN_prev, TxV4_WAN_prev, TxV6_WAN_prev, RMx_prev, TMx_prev = nanf("0");
+unsigned long long convert(std::string val)
+{
+    if(val != "A Default Value if not exists")
+    {
+            std::stringstream stream(val);
+            unsigned long long result;
+            stream >> result;
+            return result;
+    }
+    return 0;
+}
 
+bool entered_flag = false;
 // bool connectDB() {
 //     if (false == isOpenDB && sqlite3_open(DB, &dbfile) == SQLITE_OK) {
 //         isOpenDB = true;
@@ -107,35 +143,21 @@ void SQL_CMD(std::string command)
 // prints the message and then sends a copy of the message back to the server.
 void on_message(client* c, websocketpp::connection_hdl hdl, message_ptr msg) 
 {
-    if(isnanf(RxV4_WAN_prev))
-    {
-        /*takes first time stamp*/
-         time(&init_time);
-    }
-    else
-    {
-        time(&current_time);
-        delta_time = difftime(current_time, init_time);
-        init_time = current_time;
-        //std::cout << float(delta_time) << " seconds" << std::endl;
-    }
+
     std::string results = msg->get_payload();
     std::string parsed_data;
     size_t found_header = results.find("headers:");
     size_t found_data = results.find("data:");   
     
-    if (found_header!=std::string::npos)
+
+     if (found_data!=std::string::npos)
     {
-	    parsed_data = results.substr(found_header+5, results.length());
-    }
-    else if (found_data!=std::string::npos)
-    {
-        parsed_data = results.substr(found_data+5, results.length());
+        parsed_data = results.substr(found_data+data_str.length(), results.length());
     }
     else
     {
-	    //something else
-	    return;
+	//something else
+	return;
     }
 
      
@@ -143,120 +165,211 @@ void on_message(client* c, websocketpp::connection_hdl hdl, message_ptr msg)
     Json::StyledWriter styledWriter;
     Json::Reader reader;
     bool parsingSuccessful = reader.parse(parsed_data, pdata);
-    std::string RxV4_WAN, RxV6_WAN, TxV4_WAN, TxV6_WAN, RxV4_LAN, RxV6_LAN, TxV4_LAN, TxV6_LAN, RMx, TMx;
-
+    std::string RxV4, RxV6, TxV4, TxV6, RMx, TMx, WRxV4, WRxV6, WTxV4, WTxV6;
     if (parsingSuccessful)
     {
         /*Grabs the stats values from the parsed json data*/
-        RxV4_WAN = pdata.get("system_stats_curr_intf_wan_v4_pkt_stats_rx_pkt_stats_tot_bytes", "A Default Value if not exists" ).asString();
-        RxV6_WAN = pdata.get("system_stats_curr_intf_wan_v6_pkt_stats_rx_pkt_stats_tot_bytes", "A Default Value if not exists" ).asString();
-        TxV4_WAN = pdata.get("system_stats_curr_intf_wan_v4_pkt_stats_tx_pkt_stats_tot_bytes", "A Default Value if not exists" ).asString();
-        TxV6_WAN = pdata.get("system_stats_curr_intf_wan_v6_pkt_stats_tx_pkt_stats_tot_bytes", "A Default Value if not exists" ).asString();
-        RxV4_LAN = pdata.get("system_stats_curr_intf_lan_v4_pkt_stats_rx_pkt_stats_tot_bytes", "A Default Value if not exists" ).asString();
-        RxV6_LAN = pdata.get("system_stats_curr_intf_lan_v6_pkt_stats_rx_pkt_stats_tot_bytes", "A Default Value if not exists" ).asString();
-        TxV4_LAN = pdata.get("system_stats_curr_intf_lan_v4_pkt_stats_tx_pkt_stats_tot_bytes", "A Default Value if not exists" ).asString();
-        TxV6_LAN = pdata.get("system_stats_curr_intf_lan_v6_pkt_stats_tx_pkt_stats_tot_bytes", "A Default Value if not exists" ).asString();
-        RMx = pdata.get("system_stats_curr_intf_v6_mgmt_pkt_stats_rx_pkt_stats_tot_bytes", "A Default Value if not exists" ).asString();
-        TMx = pdata.get("system_stats_curr_intf_v6_mgmt_pkt_stats_tx_pkt_stats_tot_bytes", "A Default Value if not exists" ).asString();
-    }
+        RxV4 =  pdata.get("system_stats_curr_intf_lan_v4_pkt_stats_rx_pkt_stats_tot_bytes", "A Default Value if not exists" ).asString();
+        RxV6 = pdata.get("system_stats_curr_intf_lan_v6_pkt_stats_rx_pkt_stats_tot_bytes", "A Default Value if not exists" ).asString();
+    	TxV4 = pdata.get("system_stats_curr_intf_lan_v4_pkt_stats_tx_pkt_stats_tot_bytes", "A Default Value if not exists" ).asString();
+    	TxV6 = pdata.get("system_stats_curr_intf_lan_v6_pkt_stats_tx_pkt_stats_tot_bytes", "A Default Value if not exists" ).asString();
+    	RMx = pdata.get("system_stats_curr_intf_v6_mgmt_pkt_stats_rx_pkt_stats_tot_bytes", "A Default Value if not exists" ).asString();
+    	TMx = pdata.get("system_stats_curr_intf_v6_mgmt_pkt_stats_tx_pkt_stats_tot_bytes", "A Default Value if not exists" ).asString();
 
-    if(RxV4_LAN != "A Default Value if not exists")
-    {
-        int rc = sqlite3_open("/fl0/StatsCollector.db", &db);
-        if (rc == 0)
+        WRxV4 =  pdata.get("system_stats_curr_intf_wan_v4_pkt_stats_rx_pkt_stats_tot_bytes", "A Default Value if not exists" ).asString();
+        WRxV6 = pdata.get("system_stats_curr_intf_wan_v6_pkt_stats_rx_pkt_stats_tot_bytes", "A Default Value if not exists" ).asString();
+        WTxV4 = pdata.get("system_stats_curr_intf_wan_v4_pkt_stats_tx_pkt_stats_tot_bytes", "A Default Value if not exists" ).asString();
+        WTxV6 = pdata.get("system_stats_curr_intf_wan_v6_pkt_stats_tx_pkt_stats_tot_bytes", "A Default Value if not exists" ).asString();
+    
+
+        if(RxV4 != "A Default Value if not exists")
         {
-            /**checks for open database. If rc == 0, the database is generated**/
-            SQL_CMD("/fl0/StatsCollector.db");
-            SQL_CMD("CREATE TABLE 'live' ( 'Time' TEXT NOT NULL, 'RxV4' REAL,'RxV6' REAL,'TxV4' REAL,'TxV6' REAL,'MRx' REAL,'MTx' REAL);");
-            SQL_CMD("CREATE TABLE 'day' ( 'Time' TEXT NOT NULL, 'RxV4' REAL,'RxV6' REAL,'TxV4' REAL,'TxV6' REAL,'MRx' REAL,'MTx' REAL);");
-            SQL_CMD("CREATE TABLE 'max' ( 'Time' TEXT NOT NULL, 'RxV4' REAL,'RxV6' REAL,'TxV4' REAL,'TxV6' REAL,'MRx' REAL,'MTx' REAL);");
-        }
-
-        SQL_CMD("ATTACH DATABASE '/fl0/StatsCollector' as 'statscollector';");
-        
-        if(isnanf(RxV4_WAN_prev))
-        {
-            /*First iteration is always empty, this sets up the baseline for forward progression*/
-            RxV4_WAN_prev = 1.0*std::atoi(RxV4_WAN.c_str());
-            RxV6_WAN_prev = 1.0*std::atoi(RxV6_WAN.c_str()) - 1.0*std::atoi(RMx.c_str());
-            TxV4_WAN_prev = 1.0*std::atoi(TxV4_WAN.c_str());
-            TxV6_WAN_prev = 1.0*std::atoi(TxV6_WAN.c_str()) - 1.0*std::atoi(TMx.c_str());
-            RMx_prev = 1.0*std::atoi(RMx.c_str());
-            TMx_prev = 1.0*std::atoi(TMx.c_str());
-        }
-        else
-        {
-
-
-        std::cout << "RxV4-WAN: " << RxV4_WAN  << std::endl;
-        std::cout << "RxV6-WAN: " << RxV6_WAN  << std::endl;
-        std::cout << "TxV4-WAN: " << TxV4_WAN  << std::endl;
-        std::cout << "TxV6-WAN: " << TxV6_WAN  << std::endl;
-        std::cout << "RxV4-LAN: " << RxV4_LAN  << std::endl;
-        std::cout << "RxV6-LAN: " << RxV6_LAN  << std::endl;
-        std::cout << "TxV4-LAN: " << TxV4_LAN  << std::endl;
-        std::cout << "TxV6-LAN: " << TxV6_LAN  << std::endl;
-        std::cout << "RMx: " << RMx  << std::endl;
-        std::cout << "TMx: " << TMx  << std::endl << std::endl;
-
-
-            char buffer[200];
-            sprintf(buffer,
-                "INSERT INTO live (Time,RxV4,RxV6,TxV4, TxV6, MRx, MTx) VALUES (datetime('now','localtime', '-4 hours'),%-.2f,%-.2f,%-.2f,%-.2f,%-.2f,%-.2f);",
-                    (1.0*std::atoi(RxV4_WAN.c_str()) - RxV4_WAN_prev) / (1024*1024*delta_time),
-                        ((1.0*std::atoi(RxV6_WAN.c_str())) - RxV6_WAN_prev - 1.0*std::atoi(RMx.c_str())) / (1024*1024*delta_time),
-                            (1.0*std::atoi(TxV4_WAN.c_str()) - TxV4_WAN_prev) / (1024*1024*delta_time),
-                                ((1.0*std::atoi(TxV6_WAN.c_str())) - TxV6_WAN_prev - 1.0*std::atoi(TMx.c_str())) / (1024*1024*delta_time),
-                                    (1.0*std::atoi(RMx.c_str()) - RMx_prev) / (1024*delta_time),
-                                        (1.0*std::atoi(TMx.c_str()) - TMx_prev) / (1024*delta_time)
-                );
-        
-            /**Store Previous values for next iteration. Used for delta calculation **/ 
-            RxV4_WAN_prev = 1.0*std::atoi(RxV4_WAN.c_str());
-            RxV6_WAN_prev = 1.0*std::atoi(RxV6_WAN.c_str()) - 1.0*std::atoi(RMx.c_str());
-            TxV4_WAN_prev = 1.0*std::atoi(TxV4_WAN.c_str());
-            TxV6_WAN_prev = 1.0*std::atoi(TxV6_WAN.c_str()) - 1.0*std::atoi(TMx.c_str());
-            RMx_prev = 1.0*std::atoi(RMx.c_str());
-            TMx_prev = 1.0*std::atoi(TMx.c_str());
-            
-            
-            
-            SQL_CMD(buffer);
-            day_counter++;
-            max_counter++;
-            SQL_CMD("Delete from live where Time < datetime('now','localtime','-5 hour');");
-            if(day_counter == 300)
+            int rc = sqlite3_open("/fl0/StatsCollector.db", &db);
+            if (rc == 0)
             {
-                /**Averages last 5 minutes from live into table day**/
-                SQL_CMD("INSERT INTO day (Time, RxV4, RxV6, TxV4, TxV6, MRx, MTx) VALUES" 
-                "(datetime('now', 'localtime', '-4 hours'),"  
-                "(select avg(RxV4) from live where Time > datetime('now','localtime','-4 hours','-5 minutes')),"
-                "(select avg(RxV6) from live where Time > datetime('now','localtime','-4 hours','-5 minutes')),"
-                "(select avg(TxV4) from live where Time > datetime('now','localtime','-4 hours','-5 minutes')),"
-                "(select avg(TxV6) from live where Time > datetime('now','localtime','-4 hours','-5 minutes')),"
-                "(select avg(MRx) from live where Time > datetime('now','localtime','-4 hours','-5 minutes')),"
-                "(select avg(MTx) from live where Time > datetime('now','localtime','-4 hours','-5 minutes')));");
-                SQL_CMD("Delete from day where Time < datetime('now','localtime','-4 hours','-1 day');");
-
-                day_counter = 0;
+                /**checks for open database. If rc == 0, the database is generated**/
+                SQL_CMD("/fl0/StatsCollector.db");
+        	SQL_CMD("CREATE TABLE 'live' ( 'Time' TEXT NOT NULL, 'RxV4' REAL,'RxV6' REAL,'TxV4' REAL,'TxV6' REAL,'MRx' REAL,'MTx' REAL);");
+        	SQL_CMD("CREATE TABLE 'day' ( 'Time' TEXT NOT NULL, 'RxV4' REAL, 'RxV4_MAX' REAL, 'RxV4_MIN' REAL,"
+            		" 'RxV6' REAL, 'RxV6_MAX' REAL, 'RxV6_MIN' REAL, 'TxV4' REAL, 'TxV4_MAX' REAL, 'TxV4_MIN' REAL,"
+            		" 'TxV6' REAL, 'TxV6_MAX' REAL, 'TxV6_MIN' REAL, 'MRx' REAL, 'MRx_MAX' REAL, 'MRx_MIN' REAL,"
+            		" 'MTx' REAL, 'MTx_MAX' REAL, 'MTx_MIN' REAL );");
+		SQL_CMD("CREATE TABLE 'max' ( 'Time' TEXT NOT NULL, 'RxV4' REAL, 'RxV4_MAX' REAL, 'RxV4_MIN' REAL,"
+            		" 'RxV6' REAL, 'RxV6_MAX' REAL, 'RxV6_MIN' REAL, 'TxV4' REAL, 'TxV4_MAX' REAL, 'TxV4_MIN' REAL,"
+            		" 'TxV6' REAL, 'TxV6_MAX' REAL, 'TxV6_MIN' REAL, 'MRx' REAL, 'MRx_MAX' REAL, 'MRx_MIN' REAL,"
+            		" 'MTx' REAL, 'MTx_MAX' REAL, 'MTx_MIN' REAL );");
             }
-            if(max_counter == 3600)
+
+            SQL_CMD("ATTACH DATABASE '/fl0/StatsCollector' as 'statscollector';");
+            
+            if(entered_flag == false)
             {
-                /**Averages last hour from live into table max**/
+                std::cout << "Got here";
+                /*First iteration is always empty, this sets up the baseline for forward progression*/
+                LANRxv4.curr=convert(RxV4);
+                LANRxv6.curr=convert(RxV6);
+                LANTxv4.curr=convert(TxV4);
+                LANTxv6.curr=convert(TxV6);
+                WANRxv4.curr=convert(WRxV4);
+                WANRxv6.curr=convert(WRxV6);
+                WANTxv4.curr=convert(WTxV4);
+                WANTxv6.curr=convert(WTxV6);
+                MgmtRx.curr=convert(RMx);
+                MgmtTx.curr=convert(TMx);
 
-                SQL_CMD("INSERT INTO max (Time, RxV4, RxV6, TxV4, TxV6, MRx, MTx) VALUES" 
-                "(datetime('now', 'localtime', '-4 hours'),"  
-                "(select avg(RxV4) from live where Time > datetime('now','localtime','-5 hours')),"
-                "(select avg(RxV6) from live where Time > datetime('now','localtime','-5 hours')),"
-                "(select avg(TxV4) from live where Time > datetime('now','localtime','-5 hours')),"
-                "(select avg(TxV6) from live where Time > datetime('now','localtime','-5 hours')),"
-                "(select avg(MRx) from live where Time > datetime('now','localtime','-5 hours')),"
-                "(select avg(MTx) from live where Time > datetime('now','localtime','-5 hours')));");
-                SQL_CMD("Delete from day where Time < datetime('now','localtime','-15 days');");
+                
+                LANRxv4.prev = LANRxv4.curr;
+                LANRxv6.prev = LANRxv6.curr;
+                LANTxv4.prev = LANTxv4.curr;
+                LANTxv6.prev = LANTxv6.curr;
 
-                max_counter = 0;
+                WANRxv4.prev = WANRxv4.curr;
+                WANRxv6.prev = WANRxv6.curr;
+                WANTxv4.prev = WANTxv4.curr;
+                WANTxv6.prev = WANTxv6.curr;
+                MgmtRx.prev = MgmtRx.curr;
+                MgmtTx.prev = MgmtTx.curr;
+
+                entered_flag = true;
             }
-            rc = sqlite3_close_v2(db);    
+            else
+            {
+                gettimeofday(&tv1, NULL);
+                curr=(double) (tv1.tv_usec)/1000000 + (double) (tv1.tv_sec);
+                delta_time = (double)(curr - prev);
+                printf ("Total time = %f seconds\n",delta_time);
+
+
+
+                LANRxv4.curr=convert(RxV4);
+                LANRxv4.thru = 8*(LANRxv4.curr - LANRxv4.prev)/ (1024.0*1024.0 * delta_time);
+
+
+                LANRxv6.curr=convert(RxV6);
+                LANRxv6.thru = 8*(LANRxv6.curr - LANRxv6.prev)/ (1024.0*1024.0 * delta_time);
+                //2x on bottom. There is an issue where LANTxv4 is double counting packets, this is a temp fix
+                
+                LANTxv4.curr=convert(TxV4);
+                LANTxv4.thru = 8*(LANTxv4.curr - LANTxv4.prev)/ (2*1024.0*1024.0 * delta_time);
+
+                LANTxv6.curr=convert(TxV6);
+                LANTxv6.thru = 8*(LANTxv6.curr - LANTxv6.prev)/ (1024.0*1024.0 * delta_time);
+
+                WANRxv4.curr=convert(WRxV4);
+                WANRxv4.thru = 8*(WANRxv4.curr - WANRxv4.prev)/ (1024.0*1024.0 * delta_time);
+
+                WANRxv6.curr=convert(WRxV6);
+                WANRxv6.thru = 8*(WANRxv6.curr - WANRxv6.prev)/ (1024.0*1024.0 * delta_time);
+
+                WANTxv4.curr=convert(WTxV4);
+                WANTxv4.thru = 8*(WANTxv4.curr - WANTxv4.prev)/ (1024.0*1024.0 * delta_time);
+
+                WANTxv6.curr=convert(WTxV6);
+                WANTxv6.thru = 8*(WANTxv6.curr - WANTxv6.prev)/ (1024.0*1024.0 * delta_time);
+
+                MgmtRx.curr=convert(RMx);
+                MgmtRx.thru = 8*(MgmtRx.curr - MgmtRx.prev)/ (1024.0 * delta_time);
+
+                MgmtTx.curr=convert(TMx);
+                MgmtTx.thru = 8*(MgmtTx.curr - MgmtTx.prev)/ (1024.0 * delta_time);
+
+
+                char buffer[200];
+		std::string time_prefix = "strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours')";
+                sprintf(buffer,
+                    "INSERT INTO live (Time,RxV4,RxV6,TxV4, TxV6, MRx, MTx) VALUES (%s,%-.2f,%-.2f,%-.2f,%-.2f,%-.2f,%-.2f);",
+                    time_prefix.c_str(),            
+					WANRxv4.thru,
+                    WANRxv6.thru,
+                    WANTxv4.thru,
+                    WANTxv6.thru,
+                    MgmtRx.thru,
+                    MgmtTx.thru
+                    );
+            
+                /**Store Previous values for next iteration. Used for delta calculation **/ 
+                LANRxv4.prev = LANRxv4.curr;
+                LANRxv6.prev = LANRxv6.curr;
+                LANTxv4.prev = LANTxv4.curr;
+                LANTxv6.prev = LANTxv6.curr;
+
+                WANRxv4.prev = WANRxv4.curr;
+                WANRxv6.prev = WANRxv6.curr;
+                WANTxv4.prev = WANTxv4.curr;
+                WANTxv6.prev = WANTxv6.curr;
+                MgmtRx.prev = MgmtRx.curr;
+                MgmtTx.prev = MgmtTx.curr;
+                
+                prev=curr;
+
+                
+                SQL_CMD(buffer);
+                day_counter++;
+                max_counter++;
+                SQL_CMD("Delete from live where Time < strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hour');");
+                if(day_counter == 300)
+                {
+                    /**Averages last 5 minutes from live into table day**/
+
+                    
+			SQL_CMD("INSERT INTO day (Time, RxV4, RxV4_MAX, RxV4_MIN, RxV6, RxV6_MAX, RxV6_MIN,TxV4, TxV4_MAX,"
+			"TXV4_MIN, TxV6, TxV6_MAX, TXV6_MIN, MRx,MRx_MAX, MRx_MIN, MTx, MTx_MAX, MTx_MIN) VALUES" 
+			"(datetime('now', 'localtime'),"  
+			"(select avg(RxV4) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
+			"(select max(RxV4) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
+			"(select min(RxV4) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
+			"(select avg(RxV6) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
+			"(select max(RxV6) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
+			"(select min(RxV6) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
+			"(select avg(TxV4) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
+			"(select max(TxV4) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
+			"(select min(TxV4) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
+			"(select avg(TxV6) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
+			"(select max(TxV6) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
+			"(select min(TxV6) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
+			"(select avg(MRx) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
+			"(select max(MRx) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
+			"(select min(MRx) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
+			"(select avg(MTx) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
+			"(select max(MTx) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
+			"(select min(MTx) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')));");
+
+			SQL_CMD("Delete from day where Time < strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-1 day');");
+
+                    day_counter = 0;
+                }
+                if(max_counter == 3600)
+                {
+                    /**Averages last hour from live into table max**/
+			SQL_CMD(""
+			"INSERT INTO max (Time, RxV4, RxV4_MAX, RxV4_MIN, RxV6, RxV6_MAX, RxV6_MIN,TxV4, TxV4_MAX,"
+			"TXV4_MIN, TxV6, TxV6_MAX, TXV6_MIN, MRx,MRx_MAX, MRx_MIN, MTx, MTx_MAX, MTx_MIN) VALUES" 
+			"(datetime('now', 'localtime'),"  
+			"(select avg(RxV4) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
+			"(select max(RxV4) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
+			"(select min(RxV4) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
+			"(select avg(RxV6) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
+			"(select max(RxV6) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
+			"(select min(RxV6) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
+			"(select avg(TxV4) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
+			"(select max(TxV4) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
+			"(select min(TxV4) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
+			"(select avg(TxV6) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
+			"(select max(TxV6) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
+			"(select min(TxV6) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
+			"(select avg(MRx) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
+			"(select max(MRx) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
+			"(select min(MRx) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
+			"(select avg(MTx) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
+			"(select max(MTx) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
+			"(select min(MTx) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')));");
+                    SQL_CMD("Delete from day where Time < strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-15 days');");
+
+
+                    max_counter = 0;
+                }
+                rc = sqlite3_close_v2(db);    
+            }
         }
     }
 
@@ -300,6 +413,8 @@ void on_open(client* c, websocketpp::connection_hdl hdl)
 	}
 	
     c->send(hdl,output,websocketpp::frame::opcode::text,ec);
+    gettimeofday(&tv1, NULL);
+    prev=(double) (tv1.tv_usec)/1000000 + (double) (tv1.tv_sec);
     //std::cout << "Message sent : " <<  output << std::endl;
     if (ec)
     {
