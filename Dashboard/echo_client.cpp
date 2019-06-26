@@ -188,17 +188,11 @@ void on_message(client* c, websocketpp::connection_hdl hdl, message_ptr msg)
             if (rc == 0)
             {
                 /**checks for open database. If rc == 0, the database is generated**/
-                SQL_CMD("/fl0/StatsCollector.db");
-        	SQL_CMD("CREATE TABLE 'live' ( 'Time' TEXT NOT NULL, 'RxV4' REAL,'RxV6' REAL,'TxV4' REAL,'TxV6' REAL,'MRx' REAL,'MTx' REAL);");
-        	SQL_CMD("CREATE TABLE 'day' ( 'Time' TEXT NOT NULL, 'RxV4' REAL, 'RxV4_MAX' REAL, 'RxV4_MIN' REAL,"
-            		" 'RxV6' REAL, 'RxV6_MAX' REAL, 'RxV6_MIN' REAL, 'TxV4' REAL, 'TxV4_MAX' REAL, 'TxV4_MIN' REAL,"
-            		" 'TxV6' REAL, 'TxV6_MAX' REAL, 'TxV6_MIN' REAL, 'MRx' REAL, 'MRx_MAX' REAL, 'MRx_MIN' REAL,"
-            		" 'MTx' REAL, 'MTx_MAX' REAL, 'MTx_MIN' REAL );");
-		SQL_CMD("CREATE TABLE 'max' ( 'Time' TEXT NOT NULL, 'RxV4' REAL, 'RxV4_MAX' REAL, 'RxV4_MIN' REAL,"
-            		" 'RxV6' REAL, 'RxV6_MAX' REAL, 'RxV6_MIN' REAL, 'TxV4' REAL, 'TxV4_MAX' REAL, 'TxV4_MIN' REAL,"
-            		" 'TxV6' REAL, 'TxV6_MAX' REAL, 'TxV6_MIN' REAL, 'MRx' REAL, 'MRx_MAX' REAL, 'MRx_MIN' REAL,"
-            		" 'MTx' REAL, 'MTx_MAX' REAL, 'MTx_MIN' REAL );");
-            }
+            SQL_CMD("/fl0/StatsCollector.db");
+            SQL_CMD("CREATE TABLE 'live' ( 'Time' TEXT NOT NULL, 'RxV4' REAL,'RxV6' REAL,'TxV4' REAL,'TxV6' REAL,'MRx' REAL,'MTx' REAL);");
+            SQL_CMD("CREATE TABLE 'day' ( 'Time' TEXT NOT NULL, 'RxV4' REAL,'RxV6' REAL,'TxV4' REAL,'TxV6' REAL,'MRx' REAL,'MTx' REAL);");
+            SQL_CMD("CREATE TABLE 'max' ( 'Time' TEXT NOT NULL, 'RxV4' REAL,'RxV6' REAL,'TxV4' REAL,'TxV6' REAL,'MRx' REAL,'MTx' REAL);");
+        }
 
             SQL_CMD("ATTACH DATABASE '/fl0/StatsCollector' as 'statscollector';");
             
@@ -312,27 +306,14 @@ void on_message(client* c, websocketpp::connection_hdl hdl, message_ptr msg)
                     /**Averages last 5 minutes from live into table day**/
 
                     
-			SQL_CMD("INSERT INTO day (Time, RxV4, RxV4_MAX, RxV4_MIN, RxV6, RxV6_MAX, RxV6_MIN,TxV4, TxV4_MAX,"
-			"TXV4_MIN, TxV6, TxV6_MAX, TXV6_MIN, MRx,MRx_MAX, MRx_MIN, MTx, MTx_MAX, MTx_MIN) VALUES" 
+			SQL_CMD("INSERT INTO day (Time, RxV4, RxV6, TxV4, TxV6, MRx, MTx) VALUES" 
 			"(datetime('now', 'localtime'),"  
 			"(select avg(RxV4) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
-			"(select max(RxV4) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
-			"(select min(RxV4) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
 			"(select avg(RxV6) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
-			"(select max(RxV6) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
-			"(select min(RxV6) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
 			"(select avg(TxV4) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
-			"(select max(TxV4) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
-			"(select min(TxV4) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
 			"(select avg(TxV6) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
-			"(select max(TxV6) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
-			"(select min(TxV6) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
 			"(select avg(MRx) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
-			"(select max(MRx) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
-			"(select min(MRx) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
-			"(select avg(MTx) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
-			"(select max(MTx) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')),"
-			"(select min(MTx) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')));");
+			"(select avg(MTx) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes')));");
 
 			SQL_CMD("Delete from day where Time < strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-1 day');");
 
@@ -342,28 +323,15 @@ void on_message(client* c, websocketpp::connection_hdl hdl, message_ptr msg)
                 {
                     /**Averages last hour from live into table max**/
 			SQL_CMD(""
-			"INSERT INTO max (Time, RxV4, RxV4_MAX, RxV4_MIN, RxV6, RxV6_MAX, RxV6_MIN,TxV4, TxV4_MAX,"
-			"TXV4_MIN, TxV6, TxV6_MAX, TXV6_MIN, MRx,MRx_MAX, MRx_MIN, MTx, MTx_MAX, MTx_MIN) VALUES" 
+			"INSERT INTO max (Time, RxV4, RxV6, TxV4, TxV6, MRx, MTx) VALUES" 
 			"(datetime('now', 'localtime'),"  
 			"(select avg(RxV4) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
-			"(select max(RxV4) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
-			"(select min(RxV4) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
 			"(select avg(RxV6) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
-			"(select max(RxV6) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
-			"(select min(RxV6) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
 			"(select avg(TxV4) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
-			"(select max(TxV4) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
-			"(select min(TxV4) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
 			"(select avg(TxV6) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
-			"(select max(TxV6) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
-			"(select min(TxV6) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
 			"(select avg(MRx) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
-			"(select max(MRx) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
-			"(select min(MRx) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
-			"(select avg(MTx) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
-			"(select max(MTx) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')),"
-			"(select min(MTx) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')));");
-                    SQL_CMD("Delete from day where Time < strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-15 days');");
+			"(select avg(MTx) from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours')));");
+            SQL_CMD("Delete from day where Time < strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-15 days');");
 
 
                     max_counter = 0;
