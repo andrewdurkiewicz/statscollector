@@ -241,10 +241,9 @@ void on_message(client* c, websocketpp::connection_hdl hdl, message_ptr msg)
 
                 LANRxv6.curr=convert(RxV6);
                 LANRxv6.thru = 8*(LANRxv6.curr - LANRxv6.prev)/ (1024.0*1024.0 * delta_time);
-                //2x on bottom. There is an issue where LANTxv4 is double counting packets, this is a temp fix
-                
+                             
                 LANTxv4.curr=convert(TxV4);
-                LANTxv4.thru = 8*(LANTxv4.curr - LANTxv4.prev)/ (2*1024.0*1024.0 * delta_time);
+                LANTxv4.thru = 8*(LANTxv4.curr - LANTxv4.prev)/ (1024.0*1024.0 * delta_time);
 
                 LANTxv6.curr=convert(TxV6);
                 LANTxv6.thru = 8*(LANTxv6.curr - LANTxv6.prev)/ (1024.0*1024.0 * delta_time);
