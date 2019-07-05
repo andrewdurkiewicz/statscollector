@@ -1,0 +1,2 @@
+/vsat/apps/ws_client /fl0/stats_config_old.json
+/vsat/apps/http/html/cgi-bin/shm_syslog.cgi
