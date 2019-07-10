@@ -1,0 +1,62 @@
+[
+  {
+    "Label": "RxV4",
+    "Description": "V4 LAN Receive",
+    "API_Callback": "system_stats_curr_intf_lan_v4_pkt_stats_rx_pkt_stats_tot_bytes",
+    "Unit": "mbps"
+  },
+  {
+    "Label": "RxV6",
+    "Description": "V6 LAN Receive",
+    "API_Callback": "system_stats_curr_intf_lan_v6_pkt_stats_rx_pkt_stats_tot_bytes",
+    "Unit": "mbps"
+  },
+  {
+    "Label": "TxV4",
+    "Description": "V4 LAN Transmit",
+    "API_Callback": "system_stats_curr_intf_lan_v4_pkt_stats_tx_pkt_stats_tot_bytes",
+    "Unit": "mbps"
+  },
+  {
+    "Label": "TxV6",
+    "Description": "V6 LAN Transmit",
+    "API_Callback": "system_stats_curr_intf_lan_v6_pkt_stats_tx_pkt_stats_tot_bytes",
+    "Unit": "mbps"
+  },
+  {
+    "Label": "RMx",
+    "Description": "Received Management",
+    "API_Callback": "system_stats_curr_intf_v6_mgmt_pkt_stats_rx_pkt_stats_tot_bytes",
+    "Unit": "mbps"
+  },
+  {
+    "Label": "TMx",
+    "Description": "Transmit Management",
+    "API_Callback": "system_stats_curr_intf_v6_mgmt_pkt_stats_tx_pkt_stats_tot_bytes",
+    "Unit": "Kbps"
+  },
+  {
+    "Label": "WRxV4",
+    "Description": "V4 WAN Receive",
+    "API_Callback": "system_stats_curr_intf_wan_v4_pkt_stats_rx_pkt_stats_tot_bytes",
+    "Unit": "Kbps"
+  },
+  {
+    "Label": "WRxV6",
+    "Description": "V6 WAN Receive",
+    "API_Callback": "system_stats_curr_intf_wan_v6_pkt_stats_rx_pkt_stats_tot_bytes",
+    "Unit": "mbps"
+  },
+  {
+    "Label": "WTxV4",
+    "Description": "V4 WAN Transmit",
+    "API_Callback": "system_stats_curr_intf_wan_v4_pkt_stats_tx_pkt_stats_tot_bytes",
+    "Unit": "mbps"
+  },
+  {
+    "Label": "WTxV6",
+    "Description": "V6 WAN Transmit",
+    "API_Callback": "system_stats_curr_intf_wan_v6_pkt_stats_tx_pkt_stats_tot_bytes",
+    "Unit": "mbps"
+  }
+]

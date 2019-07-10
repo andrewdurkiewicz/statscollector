@@ -21,53 +21,50 @@ using namespace Express;
 //To Run:
 //  g++ http_api_dashboard.cpp -I. libSQLiteCpp.so libsqlite3.so -lpthread -ldl libSQLiteCpp.so -libjsoncpp.so ljsoncpp /home/user/jsoncpp/build-shared/libjsoncpp.so -o http_api_executable && ./http_api_executable 
 
-void SQL_CMD(std::string comand);
-static int callback(void* data, int argc, char** argv, char** azColName);
-sqlite3 *db;
-char *zErrMsg = 0;
 
-/*----------------------------------------------------------------------
-Function: callback(void* data, int argc, char** argv, char** azColName) 
-Data Change Notification Callbacks  
-Purpose: Registers a callback function with the database connection identified by the first argument 
-            to be invoked whenever a row is updated, inserted or deleted in a rowid table.
-            This function is essential for the functionality of SQL_CMD(std::string command)
-------------------------------------------------------------------------*/
-static int callback(void* data, int argc, char** argv, char** azColName) 
-{ 
-    int i; 
-    fprintf(stderr, "%s: ", (const char*)data); 
-  
-    for (i = 0; i < argc; i++) 
-    { 
-        printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL"); 
-    } 
-  
-    printf("\n"); 
-    return 0; 
-} 
-/*----------------------------------------------------------------------
-Function: SQL_CMD(std::string command)
-Purpose: Executes common sqlite3 commands with the command as an input string 'command'
-------------------------------------------------------------------------*/
-void SQL_CMD(std::string command)
+void getDashConfig(Request & req, Response & res)
 {
-   sqlite3_exec(db, command.c_str(), callback, NULL, NULL);
-}
+	Json::Value root;
+	Json::Reader reader;
+	std::ifstream file("/fl0/stats_available.json");
+    	bool isparsed = reader.parse(file, root, true);
+	if(!isparsed)
+	{
+		Json::Value error_response;		
+		TRACE_LOG(LOG_ERR, LOG_ERR, "JSON Failed To Parse");
+		error_response["Error"] = reader.getFormattedErrorMessages(); //What statistic is being measured
+		res.status(434);
+		res.send(error_response);
+	}
+	res.send(root);
 
+
+}
 
 bool findState(vector<string> & conditions, Request & req, Response & res)
 {
-    if (req.query.count("State"))
-    {
-        conditions.push_back(req.query["State"]);
-    }
-    else{
+	char buff[10];
+	int begin = 1;
+	sprintf(buff, "Stat%i",begin);
 
-    	res.status(503);
-	return false;
+
+    if(!req.query.count("Stat1") || !req.query.count("State"))
+	{
+    	res.status(400);
+		return false;
 	
     }
+
+	do
+	{
+		conditions.push_back(req.query[buff]);
+		memset( buff, '\0', sizeof(char)*10 );
+		begin++;
+		sprintf(buff, "Stat%i",begin);
+
+	} while (req.query.count(buff));
+	
+
     return true;
 }
 Json::Value _initJson(string stat, string s)
@@ -78,6 +75,66 @@ Json::Value _initJson(string stat, string s)
     proto_response["Unit"] = s; //Unit for y-axis
     return proto_response;
 }
+
+void getData(Request & req, Response & res)
+{
+	Json::Value response;
+	vector<std::string> conditions;
+    string q;
+	if(findState(conditions,req,res))
+	{
+	    if(req.query["State"] == "Live")
+		{
+		    q = "Select * from live where Time > dateTime('now','localtime','-4 hours','-2 seconds');";
+	    }
+	    else if(req.query["State"] == "Day")
+		{
+		    q = "Select * from day where Time > dateTime('now','localtime','-4 hours','-1 day');";
+
+        }
+	    else if(req.query["State"] == "Max")
+		{
+		    q = "Select * from max where Time > dateTime('now','localtime','-4 hours','-15 days');";
+
+        }
+		else if(req.query["State"] == "Hour")
+		{
+			q = "Select * from live where Time > dateTime('now','localtime','-5 hours');";
+		}
+        else{
+            res.status(400);
+        }	
+	}
+	    try
+		{
+			SQLite:: Database db("/fl0/StatsCollector.db", SQLite::OPEN_READONLY );
+	    	SQLite::Statement query(db,q);
+			while(query.executeStep())
+			{
+				Json::Value row;
+				row["Time"] = (const char *)  query.getColumn("Time");
+				for(int i = 0; i<conditions.size(); i++)
+				{
+					row[conditions[i].c_str()] =  (const char *) query.getColumn(conditions[i].c_str());
+
+				}
+				response["Data"].append(row);
+			}
+			res.send(response);
+
+		}
+		catch(std::exception& e)
+		{
+			Json::Value response;
+			char buffer[200];
+			sprintf(buffer, "Rx Request: SQLITE DB ERROR-> %s\n",e.what());
+    		TRACE_LOG(LOG_ERR, LOG_ERR, "%s",buffer);
+			res.status(206);
+			res.send(response);
+		}
+
+}
+
 
 void getRx(Request & req, Response & res)
 {
@@ -105,7 +162,7 @@ void getRx(Request & req, Response & res)
 			q = "Select * from live where Time > dateTime('now','localtime','-5 hours');";
 		}
         else{
-            res.status(503);
+            res.status(400);
         }
 
 	    try
@@ -128,8 +185,10 @@ void getRx(Request & req, Response & res)
 		catch(std::exception& e)
 		{
 			Json::Value response;
-    		TRACE_LOG(LOG_ERR, LOG_ERR, "Rx Request: SQLITE DB ERROR");
-			res.status(503);
+			char buffer[200];
+			sprintf(buffer, "Rx Request: SQLITE DB ERROR-> %s\n",e.what());
+    		TRACE_LOG(LOG_ERR, LOG_ERR, "%s",buffer);
+			res.status(206);
 			res.send(response);
 		}
 
@@ -156,7 +215,7 @@ void getTx(Request & req, Response & res)
 			q = "Select * from live where Time > dateTime('now','localtime','-5 hours');";
 		}
         else{
-            res.status(503);
+            res.status(400);
         }
 
 	    try
@@ -179,8 +238,10 @@ void getTx(Request & req, Response & res)
 		catch(std::exception& e)
 		{
 			Json::Value response;
-    		TRACE_LOG(LOG_ERR, LOG_ERR, "Tx Request: SQLITE DB ERROR");
-			res.status(503);
+			char buffer[200];
+			sprintf(buffer, "Tx Request: SQLITE DB ERROR-> %s\n",e.what());
+    		TRACE_LOG(LOG_ERR, LOG_ERR, "%s",buffer);
+			res.status(206);
 			res.send(response);
 		}
 
@@ -208,7 +269,7 @@ void getMx(Request & req, Response & res)
 			q = "Select * from live where Time > dateTime('now','localtime','-5 hours');";
 		}
         else{
-            res.status(503);
+            res.status(400);
         }
 
 		try
@@ -233,8 +294,10 @@ void getMx(Request & req, Response & res)
 		catch(std::exception& e)
 		{
 			Json::Value response;
-    		TRACE_LOG(LOG_ERR, LOG_ERR, "Management Request: SQLITE DB ERROR");
-			res.status(503);
+			char buffer[200];
+			sprintf(buffer, "Management Request: SQLITE DB ERROR-> %s\n",e.what());
+    		TRACE_LOG(LOG_ERR, LOG_ERR, "%s",buffer);
+			res.status(206);
 			res.send(response);
 		}
 		
@@ -244,7 +307,9 @@ void getMx(Request & req, Response & res)
 
 void initDashboardRoutes(Router & router)
 {
-    router.get("/Rx", getRx);
+	router.get("/getConfig",getDashConfig);
+	router.get("/getData",getData);
+	router.get("/Rx", getRx);
     router.get("/Tx", getTx);
     router.get("/Mx", getMx);
 }
