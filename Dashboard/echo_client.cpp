@@ -207,14 +207,13 @@ void on_message(client *c, websocketpp::connection_hdl hdl, message_ptr msg)
                     {
                         std::cout << "Unit not recognized" << std::endl;
                     }
-                    std::cout << std::endl
-                              << "Description: " << (*i).API_Callback << std::endl;
-                    std::cout << "Throughput: " << (*i).thru << std::endl;
-                    std::cout << "delta: " << ((*i).curr - (*i).prev) << std::endl;
-                    std::cout << "time: " << delta_time << std::endl;
-                    std::cout << "prev: " << (*i).prev << std::endl;
-                    std::cout << "check: " << (*i).check << std::endl;
-                    std::cout << "unit: " << (*i).unit << std::endl;
+                    // std::cout << std::endl << "Description: " << (*i).API_Callback << std::endl;
+                    // std::cout << "Throughput: " << (*i).thru << std::endl;
+                    // std::cout << "delta: " << ((*i).curr - (*i).prev) << std::endl;
+                    // std::cout << "time: " << delta_time << std::endl;
+                    // std::cout << "prev: " << (*i).prev << std::endl;
+                    // std::cout << "check: " << (*i).check << std::endl;
+                    // std::cout << "unit: " << (*i).unit << std::endl;
                 }
                 char buffer[200];
                 char SQL_thru[200];
@@ -238,9 +237,9 @@ void on_message(client *c, websocketpp::connection_hdl hdl, message_ptr msg)
                         SQL_input_live.c_str(),
                         time_prefix.c_str(),
                         SQL_thru);
-                std::ofstream out("/fl0/SQL_thru.txt");
-                out << SQL_dayQuery + "\n\n" + SQL_maxQuery;
-                out.close();
+                // std::ofstream out("/fl0/SQL_thru.txt");
+                // out << SQL_dayQuery + "\n\n" + SQL_maxQuery;
+                // out.close();
 
                 for (std::vector<intf_val_t>::const_iterator i = nodes.begin(); i != nodes.end(); ++i)
                 {
@@ -341,19 +340,6 @@ void on_open(client *c, websocketpp::connection_hdl hdl)
 
     for (int index = 0; index < stats.size(); ++index)
     {
-
-        /* The parent struct key denotes the region of shared memory the statistics needs to be collected from.
-             * Root_struct: this is the root structure of the data point in the stats memory. In this case, it is mgmt structure
-             * Name: name is the variable name of data point
-             *      "stats": [
-             *          {
-             *                "root_struct": "mgmt",
-             *                "name": "genStUpTimeMins"
-             *          } ]
-             *          will translate to 
-             *          stats,system_stats_curr_mgmt_genStUpTimeMins             
-             *          ":" is used as a delimiter for the server .... for now (#TODO:change to json format string)
-             */
         output.append("stats,");
         output.append("system_stats_curr_" + stats[index]["parent_struct"].asString() + "_" + stats[index]["root_struct"].asString() + "_");
         output.append(stats[index]["name"].asString() + ":");
