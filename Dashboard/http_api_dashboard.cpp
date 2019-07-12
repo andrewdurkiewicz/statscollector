@@ -67,14 +67,7 @@ bool findState(vector<string> & conditions, Request & req, Response & res)
 
     return true;
 }
-Json::Value _initJson(string stat, string s)
-{
-    Json::Value proto_response;
-    proto_response["Data"] = Json::arrayValue; //Where the Values go
-    proto_response["Stat"] = stat; //What statistic is being measured
-    proto_response["Unit"] = s; //Unit for y-axis
-    return proto_response;
-}
+
 
 void getData(Request & req, Response & res)
 {
@@ -107,7 +100,7 @@ void getData(Request & req, Response & res)
 	}
 	    try
 		{
-			SQLite:: Database db("/fl0/StatsCollector.db", SQLite::OPEN_READONLY );
+			SQLite:: Database db("/tmp/StatsCollector.db", SQLite::OPEN_READONLY );
 	    	SQLite::Statement query(db,q);
 			while(query.executeStep())
 			{
@@ -136,181 +129,12 @@ void getData(Request & req, Response & res)
 }
 
 
-void getRx(Request & req, Response & res)
-{
-    vector<string> conditions;
-    string q;
-
-	if(findState(conditions,req,res))
-	{
-	    if(req.query["State"] == "Live")
-		{
-		    q = "Select * from live where Time > dateTime('now','localtime','-4 hours','-2 seconds');";
-	    }
-	    else if(req.query["State"] == "Day")
-		{
-		    q = "Select * from day where Time > dateTime('now','localtime','-4 hours','-1 day');";
-
-        }
-	    else if(req.query["State"] == "Max")
-		{
-		    q = "Select * from max where Time > dateTime('now','localtime','-4 hours','-15 days');";
-
-        }
-		else if(req.query["State"] == "Hour")
-		{
-			q = "Select * from live where Time > dateTime('now','localtime','-5 hours');";
-		}
-        else{
-            res.status(400);
-        }
-
-	    try
-		{
-			Json::Value response = _initJson("Rx", "Mbps");
-			SQLite:: Database db("/fl0/StatsCollector.db", SQLite::OPEN_READONLY );
-	    	SQLite::Statement query(db,q);
-			while(query.executeStep())
-			{
-			
-				Json::Value row;
-				row["Time"] = (const char *)  query.getColumn("Time");
-				row["V4"] = (const char *) query.getColumn("RxV4");
-				row["V6"] = (const char *) query.getColumn("RxV6");
-				response["Data"].append(row);
-			}
-			res.send(response);
-
-		}
-		catch(std::exception& e)
-		{
-			Json::Value response;
-			char buffer[200];
-			sprintf(buffer, "Rx Request: SQLITE DB ERROR-> %s\n",e.what());
-    		TRACE_LOG(LOG_ERR, LOG_ERR, "%s",buffer);
-			res.status(206);
-			res.send(response);
-		}
-
-	}
-}
-void getTx(Request & req, Response & res)
-{
-    string q;
-	vector<string> conditions;
-
-	if(findState(conditions,req,res)){
-	    if(req.query["State"] == "Live"){
-		    q = "Select * from live where Time > dateTime('now','localtime','-4 hours','-2 seconds');";
-	    }
-	    else if(req.query["State"] == "Day"){
-		    q = "Select * from day where Time > dateTime('now','localtime','-4 hours','-1 day');";
-
-        }
-	    else if(req.query["State"] == "Max"){
-		    q = "Select * from max where Time > dateTime('now','localtime','-4 hours','-15 days');";
-
-        }
-		else if(req.query["State"] == "Hour"){
-			q = "Select * from live where Time > dateTime('now','localtime','-5 hours');";
-		}
-        else{
-            res.status(400);
-        }
-
-	    try
-		{
-			SQLite:: Database db("/fl0/StatsCollector.db", SQLite::OPEN_READONLY );
-			Json::Value response = _initJson("Tx", "Mbps");
-			SQLite::Statement query(db,q);
-			//cout << req.request_uri << endl;
-			while(query.executeStep()){
-				Json::Value row;
-				row["Time"] = (const char *)  query.getColumn("Time");
-				row["V4"] = (const char *) query.getColumn("TxV4");
-				row["V6"] = (const char *) query.getColumn("TxV6");
-				response["Data"].append(row);
-	    	}
-	    	res.send(response);
 
 
-		}
-		catch(std::exception& e)
-		{
-			Json::Value response;
-			char buffer[200];
-			sprintf(buffer, "Tx Request: SQLITE DB ERROR-> %s\n",e.what());
-    		TRACE_LOG(LOG_ERR, LOG_ERR, "%s",buffer);
-			res.status(206);
-			res.send(response);
-		}
-
-	}
-}
-
-void getMx(Request & req, Response & res)
-{
-    vector<string> conditions;
-    string q;
-
-	if(findState(conditions,req,res)){
-	    if(req.query["State"] == "Live"){
-		    q = "Select * from live where Time > dateTime('now','localtime','-4 hours','-2 seconds');";
-	    }
-	    else if(req.query["State"] == "Day"){
-		    q = "Select * from day where Time > dateTime('now','localtime','-4 hours','-1 day');";
-
-        }
-	    else if(req.query["State"] == "Max"){
-		    q = "Select * from max where Time > dateTime('now','localtime','-4 hours','-15 days');";
-
-        }
-		else if(req.query["State"] == "Hour"){
-			q = "Select * from live where Time > dateTime('now','localtime','-5 hours');";
-		}
-        else{
-            res.status(400);
-        }
-
-		try
-		{
-    		SQLite:: Database db("/fl0/StatsCollector.db", SQLite::OPEN_READONLY );
-
-			SQLite::Statement query(db,q);
-			//cout << req.request_uri << endl;
-			Json::Value response = _initJson("Mx", "Kbps");
-
-			while(query.executeStep()){
-				Json::Value row;
-				row["Time"] = (const char *)  query.getColumn("Time");
-				row["Tx"] = (const char *) query.getColumn("MTx");
-				row["Rx"] = (const char *) query.getColumn("MRx");
-				response["Data"].append(row);
-	    	}
-
-			res.send(response);
-
-		}
-		catch(std::exception& e)
-		{
-			Json::Value response;
-			char buffer[200];
-			sprintf(buffer, "Management Request: SQLITE DB ERROR-> %s\n",e.what());
-    		TRACE_LOG(LOG_ERR, LOG_ERR, "%s",buffer);
-			res.status(206);
-			res.send(response);
-		}
-		
-	}
-
-}
 
 void initDashboardRoutes(Router & router)
 {
 	router.get("/getConfig",getDashConfig);
 	router.get("/getData",getData);
-	router.get("/Rx", getRx);
-    router.get("/Tx", getTx);
-    router.get("/Mx", getMx);
 }
 
