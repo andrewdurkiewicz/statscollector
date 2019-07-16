@@ -1,3 +1,14 @@
+/**
+ * @file echo_client.cpp
+ * @author your name (you@domain.com)
+ * @brief 
+ * @version 0.1
+ * @date 2019-07-15
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ */
+
 /*
  * Copyright (c) 2016, Peter Thorson. All rights reserved.
  *
@@ -43,6 +54,8 @@
 #include <unistd.h>
 #include <sstream>
 
+#define MAX 3600
+#define DAY 300
 struct timeval tv1;
 
 typedef struct intf_vals
@@ -79,17 +92,26 @@ std::string SQL_input_day = "INSERT INTO day (Time";
 std::string SQL_input_max = "INSERT INTO max (Time";
 std::string SQL_dayQuery;
 std::string SQL_maxQuery;
-std::string time_prefix = "strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours')";
+std::string time_prefix = "dateTime('NOW')";
 
-/*Initialize SQLitecpp parameters*/
-void SQL_CMD(std::string comand);
+
+void SQL_CMD(std::string command);
 static int callback(void *data, int argc, char **argv, char **azColName);
 sqlite3 *db;
 char *zErrMsg = 0;
 
-/*SQLite table parameters*/
+/**
+ * @brief SQLite table parameters
+ * 
+ */
 int day_counter, max_counter = 0;
 
+/**
+ * @brief 
+ * 
+ * @param val 
+ * @return unsigned long 
+ */
 unsigned long convert(std::string val)
 {
     if (val != "A Default Value if not exists")
@@ -103,11 +125,19 @@ unsigned long convert(std::string val)
 }
 
 bool entered_flag = false;
-
+/**
+ * @brief 
+ * 
+ * @param data 
+ * @param argc 
+ * @param argv 
+ * @param azColName 
+ * @return int 
+ */
 static int callback(void *data, int argc, char **argv, char **azColName)
 {
-    int i;
-    fprintf(stderr, "%s: ", (const char *)data);
+    int i; 
+    fprintf(stderr, "%s: ", (const char *) data);
 
     for (i = 0; i < argc; i++)
     {
@@ -119,15 +149,27 @@ static int callback(void *data, int argc, char **argv, char **azColName)
 }
 /*----------------------------------------------------------------------
 Function: SQL_CMD(std::string command)
-Purpose: Executes common sqlite3 commands with the command as an input string 'command'
+Purpose: 
 ------------------------------------------------------------------------*/
+/* 
+ * @brief Executes common sqlite3 commands with the command as an input string 'command'
+ * 
+ * @param command 
+ */
+
 void SQL_CMD(std::string command)
 {
     sqlite3_exec(db, command.c_str(), callback, NULL, NULL);
 }
 
-// This message handler will be invoked once for each incoming message. It
-// prints the message and then sends a copy of the message back to the server.
+/**
+ * @brief This message handler will be invoked once for each incoming message. 
+ * It prints the message and then sends a copy of the message back to the server.
+ * 
+ * @param c  Client config with asio transport and TLS disabled
+ * @param hdl Client connection handler 
+ * @param msg 
+ */
 void on_message(client *c, websocketpp::connection_hdl hdl, message_ptr msg)
 {
     std::string results = msg->get_payload();
@@ -173,8 +215,8 @@ void on_message(client *c, websocketpp::connection_hdl hdl, message_ptr msg)
                 if (convert((*i).check) < (*i).prev)
                 {
                     entered_flag = false;
+                    std::cout << "Stats have been reset from " << (*i).label << "!" << std::endl;
                 }
-                std::cout << "Stats have been reset!" << std::endl;
             }
             if (entered_flag == false)
             {
@@ -207,13 +249,6 @@ void on_message(client *c, websocketpp::connection_hdl hdl, message_ptr msg)
                     {
                         std::cout << "Unit not recognized" << std::endl;
                     }
-                    // std::cout << std::endl << "Description: " << (*i).API_Callback << std::endl;
-                    // std::cout << "Throughput: " << (*i).thru << std::endl;
-                    // std::cout << "delta: " << ((*i).curr - (*i).prev) << std::endl;
-                    // std::cout << "time: " << delta_time << std::endl;
-                    // std::cout << "prev: " << (*i).prev << std::endl;
-                    // std::cout << "check: " << (*i).check << std::endl;
-                    // std::cout << "unit: " << (*i).unit << std::endl;
                 }
                 char buffer[200];
                 char SQL_thru[200];
@@ -237,9 +272,6 @@ void on_message(client *c, websocketpp::connection_hdl hdl, message_ptr msg)
                         SQL_input_live.c_str(),
                         time_prefix.c_str(),
                         SQL_thru);
-                // std::ofstream out("/fl0/SQL_thru.txt");
-                // out << SQL_dayQuery + "\n\n" + SQL_maxQuery;
-                // out.close();
 
                 for (std::vector<intf_val_t>::const_iterator i = nodes.begin(); i != nodes.end(); ++i)
                 {
@@ -251,21 +283,23 @@ void on_message(client *c, websocketpp::connection_hdl hdl, message_ptr msg)
                 SQL_CMD(buffer);
                 day_counter++;
                 max_counter++;
-                SQL_CMD("Delete from live where Time < strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hour');");
+                SQL_CMD("Delete from live where Time < strftime('%Y-%m-%d %H:%M:%f', 'NOW','-1 hour');");
 
-                if (day_counter == 300)
+                if (day_counter == DAY)
                 {
                     /**Averages last 5 minutes from live into table day**/
 
                     SQL_CMD(SQL_dayQuery);
-                    SQL_CMD("Delete from day where Time < strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-1 day');");
+                    SQL_CMD("Delete from day where Time < strftime('%Y-%m-%d %H:%M:%f', 'NOW','-1 day');");
                     day_counter = 0;
                 }
-                if (max_counter == 3600)
+                if (max_counter == MAX)
                 {
 
                     /**Averages last hour from live into table max**/
                     SQL_CMD(SQL_maxQuery);
+                    SQL_CMD("Delete from day where Time < strftime('%Y-%m-%d %H:%M:%f', 'NOW','-14 days');");
+
                     max_counter = 0;
                 }
                 rc = sqlite3_close_v2(db);
@@ -273,6 +307,13 @@ void on_message(client *c, websocketpp::connection_hdl hdl, message_ptr msg)
         }
     }
 }
+
+/**
+ * @brief 
+ * 
+ * @param c 
+ * @param hdl 
+ */
 void on_open(client *c, websocketpp::connection_hdl hdl)
 {
     Json::Value configroot;
@@ -310,15 +351,15 @@ void on_open(client *c, websocketpp::connection_hdl hdl)
     SQL_input_live = SQL_input_live + ")";
     SQL_input_day = SQL_input_day + ")";
     SQL_input_max = SQL_input_max + ")";
-    SQL_dayQuery = SQL_input_day + " VALUES(datetime('now', 'localtime')";
-    SQL_maxQuery = SQL_input_max + " VALUES(datetime('now', 'localtime')";
+    SQL_dayQuery = SQL_input_day + " VALUES(datetime('now')";
+    SQL_maxQuery = SQL_input_max + " VALUES(datetime('now')";
     for (std::vector<intf_val_t>::const_iterator i = nodes.begin(); i != nodes.end(); ++i)
     {
 
-        SQL_dayQuery = SQL_dayQuery + ",(select avg(" + (*i).label + ") from"
-                                                                     " live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime', '-4 hours','-5 minutes'))";
-        SQL_maxQuery = SQL_maxQuery + ",(select avg(" + (*i).label + ") from"
-                                                                     " live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime','-5 hours'))";
+        SQL_dayQuery += ",(select avg(" + (*i).label + ") from"
+                         " live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW','-5 minutes'))";
+        SQL_maxQuery += ",(select avg(" + (*i).label + ") from"
+                              " live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', '-1 hours'))";
     }
     SQL_dayQuery = SQL_dayQuery + ");";
     SQL_maxQuery = SQL_maxQuery + ");";
@@ -354,6 +395,7 @@ void on_open(client *c, websocketpp::connection_hdl hdl)
         std::cout << "Echo failed because: " << ec.message() << std::endl;
     }
 }
+
 
 int main(int argc, char *argv[])
 {
