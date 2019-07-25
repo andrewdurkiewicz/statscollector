@@ -1,54 +1,177 @@
 {
+  "rows": "correlated",
+  "style": "dot",
+  "time": "1000",
   "stats": [
     {
-      "Label": "RxV4",
-      "Description": "V4 LAN Receive",
-      "API_Callback": "system_stats_curr_intf_lan_v4_pkt_stats_rx_pkt_stats_tot_bytes"
+      "parent_struct": "intf_lan_v4_pkt_stats",
+      "root_struct": "rx_pkt_stats",
+      "name": "byte_rate"
     },
     {
-      "Label": "RxV6",
-      "Description": "V6 LAN Receive",
-      "API_Callback": "system_stats_curr_intf_lan_v6_pkt_stats_rx_pkt_stats_tot_bytes"
+      "parent_struct": "intf_lan_v4_pkt_stats",
+      "root_struct": "tx_pkt_stats",
+      "name": "byte_rate"
     },
     {
-      "Label": "TxV4",
-      "Description": "V4 LAN Transmit",
-      "API_Callback": "system_stats_curr_intf_lan_v4_pkt_stats_tx_pkt_stats_tot_bytes"
+      "parent_struct": "intf_lan_v6_pkt_stats",
+      "root_struct": "rx_pkt_stats",
+      "name": "byte_rate"
     },
     {
-      "Label": "TxV6",
-      "Description": "V6 LAN Transmit",
-      "API_Callback": "system_stats_curr_intf_lan_v6_pkt_stats_tx_pkt_stats_tot_bytes"
+      "parent_struct": "intf_lan_v6_pkt_stats",
+      "root_struct": "tx_pkt_stats",
+      "name": "byte_rate"
     },
     {
-      "Label": "RMx",
-      "Description": "Received Management",
-      "API_Callback": "system_stats_curr_intf_v6_mgmt_pkt_stats_rx_pkt_stats_tot_bytes"
+      "parent_struct": "intf_wan_v4_pkt_stats",
+      "root_struct": "rx_pkt_stats",
+      "name": "byte_rate"
     },
     {
-      "Label": "TMx",
-      "Description": "Transmit Management",
-      "API_Callback": "system_stats_curr_intf_v6_mgmt_pkt_stats_tx_pkt_stats_tot_bytes"
+      "parent_struct": "intf_wan_v4_pkt_stats",
+      "root_struct": "tx_pkt_stats",
+      "name": "byte_rate"
     },
     {
-      "Label": "WRxV4",
-      "Description": "V4 WAN Receive",
-      "API_Callback": "system_stats_curr_intf_wan_v4_pkt_stats_rx_pkt_stats_tot_bytes"
+      "parent_struct": "intf_wan_v6_pkt_stats",
+      "root_struct": "rx_pkt_stats",
+      "name": "byte_rate"
     },
     {
-      "Label": "WRxV6",
-      "Description": "V6 WAN Receive",
-      "API_Callback": "system_stats_curr_intf_wan_v6_pkt_stats_rx_pkt_stats_tot_bytes"
+      "parent_struct": "intf_wan_v6_pkt_stats",
+      "root_struct": "tx_pkt_stats",
+      "name": "byte_rate"
     },
     {
-      "Label": "WTxV4",
-      "Description": "V4 WAN Transmit",
-      "API_Callback": "system_stats_curr_intf_wan_v4_pkt_stats_tx_pkt_stats_tot_bytes"
+      "parent_struct": "intf_v6_mgmt_pkt_stats",
+      "root_struct": "rx_pkt_stats",
+      "name": "byte_rate"
     },
     {
-      "Label": "WTxV6",
-      "Description": "V6 WAN Transmit",
-      "API_Callback": "system_stats_curr_intf_wan_v6_pkt_stats_tx_pkt_stats_tot_bytes"
+      "parent_struct": "intf_v6_mgmt_pkt_stats",
+      "root_struct": "tx_pkt_stats",
+      "name": "byte_rate"
+    },
+    {
+      "parent_struct": "intf_lan_v4_pkt_stats",
+      "root_struct": "rx_pkt_stats",
+      "name": "udp_byte_rate"
+    },
+    {
+      "parent_struct": "intf_lan_v4_pkt_stats",
+      "root_struct": "tx_pkt_stats",
+      "name": "udp_byte_rate"
+    },
+    {
+      "parent_struct": "intf_lan_v6_pkt_stats",
+      "root_struct": "rx_pkt_stats",
+      "name": "udp_byte_rate"
+    },
+    {
+      "parent_struct": "intf_lan_v6_pkt_stats",
+      "root_struct": "tx_pkt_stats",
+      "name": "udp_byte_rate"
+    },
+    {
+      "parent_struct": "intf_wan_v4_pkt_stats",
+      "root_struct": "rx_pkt_stats",
+      "name": "udp_byte_rate"
+    },
+    {
+      "parent_struct": "intf_wan_v4_pkt_stats",
+      "root_struct": "tx_pkt_stats",
+      "name": "udp_byte_rate"
+    },
+    {
+      "parent_struct": "intf_wan_v6_pkt_stats",
+      "root_struct": "rx_pkt_stats",
+      "name": "udp_byte_rate"
+    },
+    {
+      "parent_struct": "intf_wan_v6_pkt_stats",
+      "root_struct": "tx_pkt_stats",
+      "name": "udp_byte_rate"
+    },
+        {
+      "parent_struct": "intf_lan_v4_pkt_stats",
+      "root_struct": "rx_pkt_stats",
+      "name": "tcp_byte_rate"
+    },
+    {
+      "parent_struct": "intf_lan_v4_pkt_stats",
+      "root_struct": "tx_pkt_stats",
+      "name": "tcp_byte_rate"
+    },
+    {
+      "parent_struct": "intf_lan_v6_pkt_stats",
+      "root_struct": "rx_pkt_stats",
+      "name": "tcp_byte_rate"
+    },
+    {
+      "parent_struct": "intf_lan_v6_pkt_stats",
+      "root_struct": "tx_pkt_stats",
+      "name": "tcp_byte_rate"
+    },
+    {
+      "parent_struct": "intf_wan_v4_pkt_stats",
+      "root_struct": "rx_pkt_stats",
+      "name": "tcp_byte_rate"
+    },
+    {
+      "parent_struct": "intf_wan_v4_pkt_stats",
+      "root_struct": "tx_pkt_stats",
+      "name": "tcp_byte_rate"
+    },
+    {
+      "parent_struct": "intf_wan_v6_pkt_stats",
+      "root_struct": "rx_pkt_stats",
+      "name": "tcp_byte_rate"
+    },
+    {
+      "parent_struct": "intf_wan_v6_pkt_stats",
+      "root_struct": "tx_pkt_stats",
+      "name": "tcp_byte_rate"
+    },
+        {
+      "parent_struct": "intf_lan_v4_pkt_stats",
+      "root_struct": "rx_pkt_stats",
+      "name": "pep_byte_rate"
+    },
+    {
+      "parent_struct": "intf_lan_v4_pkt_stats",
+      "root_struct": "tx_pkt_stats",
+      "name": "pep_byte_rate"
+    },
+    {
+      "parent_struct": "intf_lan_v6_pkt_stats",
+      "root_struct": "rx_pkt_stats",
+      "name": "pep_byte_rate"
+    },
+    {
+      "parent_struct": "intf_lan_v6_pkt_stats",
+      "root_struct": "tx_pkt_stats",
+      "name": "pep_byte_rate"
+    },
+    {
+      "parent_struct": "intf_wan_v4_pkt_stats",
+      "root_struct": "rx_pkt_stats",
+      "name": "pep_byte_rate"
+    },
+    {
+      "parent_struct": "intf_wan_v4_pkt_stats",
+      "root_struct": "tx_pkt_stats",
+      "name": "pep_byte_rate"
+    },
+    {
+      "parent_struct": "intf_wan_v6_pkt_stats",
+      "root_struct": "rx_pkt_stats",
+      "name": "pep_byte_rate"
+    },
+    {
+      "parent_struct": "intf_wan_v6_pkt_stats",
+      "root_struct": "tx_pkt_stats",
+      "name": "pep_byte_rate"
     }
   ]
 }

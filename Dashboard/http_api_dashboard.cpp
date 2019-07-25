@@ -78,21 +78,21 @@ void getData(Request & req, Response & res)
 	{
 	    if(req.query["State"] == "Live")
 		{
-		    q = "Select * from live where Time > dateTime('now','localtime','-4 hours','-2 seconds');";
+		    q = "Select * from live where Time > dateTime('now','-2 seconds');";
 	    }
 	    else if(req.query["State"] == "Day")
 		{
-		    q = "Select * from day where Time > dateTime('now','localtime','-4 hours','-1 day');";
+		    q = "Select * from day where Time > dateTime('now','-1 day');";
 
         }
 	    else if(req.query["State"] == "Max")
 		{
-		    q = "Select * from max where Time > dateTime('now','localtime','-4 hours','-15 days');";
+		    q = "Select * from max where Time > dateTime('now','-15 days');";
 
         }
 		else if(req.query["State"] == "Hour")
 		{
-			q = "Select * from live where Time > dateTime('now','localtime','-5 hours');";
+			q = "Select * from live where Time > dateTime('now','-1 hours');";
 		}
         else{
             res.status(400);

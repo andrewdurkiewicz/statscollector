@@ -56,7 +56,7 @@
 
 #define MAX 3600
 #define DAY 300
-struct timeval tv1;
+
 
 typedef struct intf_vals
 {
@@ -64,8 +64,6 @@ typedef struct intf_vals
     mutable std::string label;
     mutable std::string API_Callback;
     mutable std::string unit;
-    mutable unsigned long prev;
-    mutable unsigned long curr;
     mutable unsigned long delta;
     mutable float thru;
 } intf_val_t;
@@ -76,8 +74,6 @@ typedef websocketpp::config::asio_client::message_type::ptr message_ptr;
 using websocketpp::lib::bind;
 using websocketpp::lib::placeholders::_1;
 using websocketpp::lib::placeholders::_2;
-clock_t prev_time, current_time;
-double delta_time, prev_1, curr_1;
 
 std::vector<intf_val_t> nodes;
 
@@ -124,7 +120,6 @@ unsigned long convert(std::string val)
     return 0;
 }
 
-bool entered_flag = false;
 /**
  * @brief 
  * 
@@ -190,15 +185,18 @@ void on_message(client *c, websocketpp::connection_hdl hdl, message_ptr msg)
     Json::StyledWriter styledWriter;
     Json::Reader reader;
     bool parsingSuccessful = reader.parse(parsed_data, pdata);
+    std::cout << parsingSuccessful << std::endl << std::endl;
     if (parsingSuccessful)
     {
         for (std::vector<intf_val_t>::const_iterator i = nodes.begin(); i != nodes.end(); ++i)
         {
             (*i).check = pdata.get((*i).API_Callback, "A Default Value if not exists").asString();
         }
+        std::cout <<nodes[0].check;
         if (nodes[0].check != "A Default Value if not exists")
         {
             int rc = sqlite3_open("/tmp/StatsCollector.db", &db);
+            std::cout << rc;
             if (rc == 0)
             {
                 /**checks for open database. If rc == 0, the database is generated**/
@@ -207,51 +205,29 @@ void on_message(client *c, websocketpp::connection_hdl hdl, message_ptr msg)
                 SQL_CMD(SQL_max);
             }
 
-            SQL_CMD("ATTACH DATABASE '/fl0/StatsCollector' as 'statscollector';");
+            SQL_CMD("ATTACH DATABASE '/tmp/StatsCollector' as 'statscollector';");
 
-            for (std::vector<intf_val_t>::const_iterator i = nodes.begin(); i != nodes.end(); ++i)
-            {
-                /*Checks if the stats have been reset, if so we need to treat it as if it't first loop*/
-                if (convert((*i).check) < (*i).prev)
-                {
-                    entered_flag = false;
-                    std::cout << "Stats have been reset from " << (*i).label << "!" << std::endl;
-                }
-            }
-            if (entered_flag == false)
-            {
+
                 for (std::vector<intf_val_t>::const_iterator i = nodes.begin(); i != nodes.end(); ++i)
                 {
-                    (*i).curr = convert((*i).check);
-                    (*i).prev = (*i).curr;
-                }
-                entered_flag = true;
-            }
-            else
-            {
-
-                gettimeofday(&tv1, NULL);
-                curr_1 = (double)(tv1.tv_usec) / 1000000 + (double)(tv1.tv_sec);
-                delta_time = (double)(curr_1 - prev_1);
-                for (std::vector<intf_val_t>::const_iterator i = nodes.begin(); i != nodes.end(); ++i)
-                {
-                    (*i).curr = convert((*i).check);
+                    (*i).thru = convert((*i).check);
                     if ((*i).unit == "Mbps")
                     {
-                        (*i).thru = 8 * ((*i).curr - (*i).prev) / (1024.0 * 1024.0 * delta_time);
+                        (*i).thru = 8 * (*i).thru / (1024.0 * 1024.0);
+
                     }
                     else if ((*i).unit == "Kbps")
                     {
 
-                        (*i).thru = 8 * ((*i).curr - (*i).prev) / (1024.0 * delta_time);
+                        (*i).thru = 8 * (*i).thru /  1024.0;
                     }
                     else
                     {
                         std::cout << "Unit not recognized" << std::endl;
                     }
                 }
-                char buffer[200];
-                char SQL_thru[200];
+                char buffer[800];
+                char SQL_thru[800];
                 int pass_number = 0;
                 for (std::vector<intf_val_t>::const_iterator i = nodes.begin(); i != nodes.end(); ++i)
                 {
@@ -267,46 +243,33 @@ void on_message(client *c, websocketpp::connection_hdl hdl, message_ptr msg)
                 }
 
                 sprintf(SQL_thru, "%s);", SQL_thru);
-                sprintf(buffer,
-                        "%s VALUES (%s%s",
-                        SQL_input_live.c_str(),
-                        time_prefix.c_str(),
-                        SQL_thru);
+                sprintf(buffer,"%s VALUES (%s%s",SQL_input_live.c_str(),time_prefix.c_str(),SQL_thru);
 
-                for (std::vector<intf_val_t>::const_iterator i = nodes.begin(); i != nodes.end(); ++i)
-                {
-                    (*i).prev = (*i).curr;
-                }
-
-                prev_1 = curr_1;
 
                 SQL_CMD(buffer);
+                std::ofstream os("/fl0/outofbuffer.txt");
+                os << buffer;
                 day_counter++;
                 max_counter++;
                 SQL_CMD("Delete from live where Time < strftime('%Y-%m-%d %H:%M:%f', 'NOW','-1 hour');");
 
                 if (day_counter == DAY)
                 {
-                    /**Averages last 5 minutes from live into table day**/
-
                     SQL_CMD(SQL_dayQuery);
                     SQL_CMD("Delete from day where Time < strftime('%Y-%m-%d %H:%M:%f', 'NOW','-1 day');");
                     day_counter = 0;
                 }
                 if (max_counter == MAX)
                 {
-
-                    /**Averages last hour from live into table max**/
                     SQL_CMD(SQL_maxQuery);
                     SQL_CMD("Delete from day where Time < strftime('%Y-%m-%d %H:%M:%f', 'NOW','-14 days');");
-
                     max_counter = 0;
                 }
                 rc = sqlite3_close_v2(db);
-            }
         }
     }
 }
+
 
 /**
  * @brief 
@@ -387,9 +350,6 @@ void on_open(client *c, websocketpp::connection_hdl hdl)
     }
 
     c->send(hdl, output, websocketpp::frame::opcode::text, ec);
-    gettimeofday(&tv1, NULL);
-    prev_1 = (double)(tv1.tv_usec) / 1000000 + (double)(tv1.tv_sec);
-    //std::cout << "Message sent : " <<  output << std::endl;
     if (ec)
     {
         std::cout << "Echo failed because: " << ec.message() << std::endl;
@@ -399,7 +359,6 @@ void on_open(client *c, websocketpp::connection_hdl hdl)
 
 int main(int argc, char *argv[])
 {
-    // Create a client endpoint
 
     client c;
 
@@ -415,8 +374,11 @@ int main(int argc, char *argv[])
 
         // Initialize ASIO
         c.init_asio();
-
-        // Register our message handler
+        
+        /**
+         * @brief Register our message handler
+         * 
+         */
         c.set_message_handler(bind(&on_message, &c, ::_1, ::_2));
         c.set_open_handler(bind(&on_open, &c, ::_1));
         websocketpp::lib::error_code ec;
@@ -426,14 +388,19 @@ int main(int argc, char *argv[])
             std::cout << "could not create connection because: " << ec.message() << std::endl;
             return 0;
         }
-
-        // Note that connect here only requests a connection. No network messages are
-        // exchanged until the event loop starts running in the next line.
+    
+        /**
+         * @brief Note that connect here only requests a connection. 
+         * No network messages areexchanged until the event loop starts running in the next line.
+         * 
+         */
         c.connect(con);
 
-        // Start the ASIO io_service run loop
-        // this will cause a single connection to be made to the server. c.run()
-        // will exit when this connection is closed.
+        /*
+         * @brief start the ASIO io_service run loop
+         * this will cause a single connection to be made to the server. c.run()
+         * will exit when this connection is closed.
+         */
         c.run();
     }
     catch (websocketpp::exception const &e)
@@ -441,3 +408,4 @@ int main(int argc, char *argv[])
         std::cout << e.what() << std::endl;
     }
 }
+dashboard
