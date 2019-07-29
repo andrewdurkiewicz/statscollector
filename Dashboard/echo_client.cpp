@@ -50,13 +50,21 @@
 #include <iostream>
 #include <fstream>
 #include <time.h>
+#include <mqueue.h>
+#include <tfw.h>
+#include <sysmonitor.h>
+#include <pthread.h>
 #include "json/json.h"
 #include <unistd.h>
 #include <sstream>
+#include "terminalCommon.h"
 
 #define MAX 3600
 #define DAY 300
-
+static int _shmIgmpIndex;
+static char *_procName;
+int igmpLogId = LOG_ERR;
+static mqd_t _mqdesSelf;
 
 typedef struct intf_vals
 {
@@ -89,7 +97,6 @@ std::string SQL_input_max = "INSERT INTO max (Time";
 std::string SQL_dayQuery;
 std::string SQL_maxQuery;
 std::string time_prefix = "dateTime('NOW')";
-
 
 void SQL_CMD(std::string command);
 static int callback(void *data, int argc, char **argv, char **azColName);
@@ -131,8 +138,8 @@ unsigned long convert(std::string val)
  */
 static int callback(void *data, int argc, char **argv, char **azColName)
 {
-    int i; 
-    fprintf(stderr, "%s: ", (const char *) data);
+    int i;
+    fprintf(stderr, "%s: ", (const char *)data);
 
     for (i = 0; i < argc; i++)
     {
@@ -185,14 +192,15 @@ void on_message(client *c, websocketpp::connection_hdl hdl, message_ptr msg)
     Json::StyledWriter styledWriter;
     Json::Reader reader;
     bool parsingSuccessful = reader.parse(parsed_data, pdata);
-    std::cout << parsingSuccessful << std::endl << std::endl;
+    std::cout << parsingSuccessful << std::endl
+              << std::endl;
     if (parsingSuccessful)
     {
         for (std::vector<intf_val_t>::const_iterator i = nodes.begin(); i != nodes.end(); ++i)
         {
             (*i).check = pdata.get((*i).API_Callback, "A Default Value if not exists").asString();
         }
-        std::cout <<nodes[0].check;
+        std::cout << nodes[0].check;
         if (nodes[0].check != "A Default Value if not exists")
         {
             int rc = sqlite3_open("/tmp/StatsCollector.db", &db);
@@ -207,69 +215,65 @@ void on_message(client *c, websocketpp::connection_hdl hdl, message_ptr msg)
 
             SQL_CMD("ATTACH DATABASE '/tmp/StatsCollector' as 'statscollector';");
 
-
-                for (std::vector<intf_val_t>::const_iterator i = nodes.begin(); i != nodes.end(); ++i)
+            for (std::vector<intf_val_t>::const_iterator i = nodes.begin(); i != nodes.end(); ++i)
+            {
+                (*i).thru = convert((*i).check);
+                if ((*i).unit == "Mbps")
                 {
-                    (*i).thru = convert((*i).check);
-                    if ((*i).unit == "Mbps")
-                    {
-                        (*i).thru = 8 * (*i).thru / (1024.0 * 1024.0);
-
-                    }
-                    else if ((*i).unit == "Kbps")
-                    {
-
-                        (*i).thru = 8 * (*i).thru /  1024.0;
-                    }
-                    else
-                    {
-                        std::cout << "Unit not recognized" << std::endl;
-                    }
+                    (*i).thru = 8 * (*i).thru / (1024.0 * 1024.0);
                 }
-                char buffer[800];
-                char SQL_thru[800];
-                int pass_number = 0;
-                for (std::vector<intf_val_t>::const_iterator i = nodes.begin(); i != nodes.end(); ++i)
+                else if ((*i).unit == "Kbps")
                 {
-                    if (pass_number > 0)
-                    {
-                        sprintf(SQL_thru, "%s,%f", SQL_thru, (*i).thru);
-                    }
-                    else
-                    {
-                        sprintf(SQL_thru, ",%f", (*i).thru);
-                    }
-                    pass_number++;
+
+                    (*i).thru = 8 * (*i).thru / 1024.0;
                 }
-
-                sprintf(SQL_thru, "%s);", SQL_thru);
-                sprintf(buffer,"%s VALUES (%s%s",SQL_input_live.c_str(),time_prefix.c_str(),SQL_thru);
-
-
-                SQL_CMD(buffer);
-                std::ofstream os("/fl0/outofbuffer.txt");
-                os << buffer;
-                day_counter++;
-                max_counter++;
-                SQL_CMD("Delete from live where Time < strftime('%Y-%m-%d %H:%M:%f', 'NOW','-1 hour');");
-
-                if (day_counter == DAY)
+                else
                 {
-                    SQL_CMD(SQL_dayQuery);
-                    SQL_CMD("Delete from day where Time < strftime('%Y-%m-%d %H:%M:%f', 'NOW','-1 day');");
-                    day_counter = 0;
+                    std::cout << "Unit not recognized" << std::endl;
                 }
-                if (max_counter == MAX)
+            }
+            char buffer[800];
+            char SQL_thru[800];
+            int pass_number = 0;
+            for (std::vector<intf_val_t>::const_iterator i = nodes.begin(); i != nodes.end(); ++i)
+            {
+                if (pass_number > 0)
                 {
-                    SQL_CMD(SQL_maxQuery);
-                    SQL_CMD("Delete from day where Time < strftime('%Y-%m-%d %H:%M:%f', 'NOW','-14 days');");
-                    max_counter = 0;
+                    sprintf(SQL_thru, "%s,%f", SQL_thru, (*i).thru);
                 }
-                rc = sqlite3_close_v2(db);
+                else
+                {
+                    sprintf(SQL_thru, ",%f", (*i).thru);
+                }
+                pass_number++;
+            }
+
+            sprintf(SQL_thru, "%s);", SQL_thru);
+            sprintf(buffer, "%s VALUES (%s%s", SQL_input_live.c_str(), time_prefix.c_str(), SQL_thru);
+
+            SQL_CMD(buffer);
+            std::ofstream os("/fl0/outofbuffer.txt");
+            os << buffer;
+            day_counter++;
+            max_counter++;
+            SQL_CMD("Delete from live where Time < strftime('%Y-%m-%d %H:%M:%f', 'NOW','-1 hour');");
+
+            if (day_counter == DAY)
+            {
+                SQL_CMD(SQL_dayQuery);
+                SQL_CMD("Delete from day where Time < strftime('%Y-%m-%d %H:%M:%f', 'NOW','-1 day');");
+                day_counter = 0;
+            }
+            if (max_counter == MAX)
+            {
+                SQL_CMD(SQL_maxQuery);
+                SQL_CMD("Delete from day where Time < strftime('%Y-%m-%d %H:%M:%f', 'NOW','-14 days');");
+                max_counter = 0;
+            }
+            rc = sqlite3_close_v2(db);
         }
     }
 }
-
 
 /**
  * @brief 
@@ -320,9 +324,9 @@ void on_open(client *c, websocketpp::connection_hdl hdl)
     {
 
         SQL_dayQuery += ",(select avg(" + (*i).label + ") from"
-                         " live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW','-5 minutes'))";
+                                                       " live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW','-5 minutes'))";
         SQL_maxQuery += ",(select avg(" + (*i).label + ") from"
-                              " live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', '-1 hours'))";
+                                                       " live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', '-1 hours'))";
     }
     SQL_dayQuery = SQL_dayQuery + ");";
     SQL_maxQuery = SQL_maxQuery + ");";
@@ -355,7 +359,135 @@ void on_open(client *c, websocketpp::connection_hdl hdl)
         std::cout << "Echo failed because: " << ec.message() << std::endl;
     }
 }
+static void _igmpProcessHeartBeat()
+{
+    //TRACE_LOG(igmpLogId, LOG_INFO, " \n HeartBeat Message received, Updated shared memory for IGMP");
+    setShmConfig(_shmIgmpIndex, SHM_GOOD);
+    //TRACE_LOG(igmpLogId, LOG_INFO, " \n End of _igmpProcessHeartBeat");
+}
 
+static int _initMq(void)
+{
+    struct mq_attr attributeMq;
+    char qname[8];
+    int ret = 0;
+    int status;
+
+    MR_GET_QNAME(qname, WSC_APPL_ID);
+    ret = mq_unlink(qname);
+
+    fflush(stdout);
+    attributeMq.mq_maxmsg = MR_MAX_MSGS;
+    attributeMq.mq_msgsize = MR_MAX_MTU;
+    _mqdesSelf = mq_open(qname, O_CREAT | O_RDONLY, 0777, &attributeMq);
+
+    if (_mqdesSelf == (mqd_t)-1)
+    {
+        //TRACE_LOG(igmpLogId, LOG_ERR,"error mq_open");
+        return ERROR;
+    }
+
+    status = mrSubscribe(WSC_APPL_ID, MR_INTERNAL, SHM_HEART_BEAT_MSGID);
+    if (status != MR_RET_OK)
+    {
+        //TRACE_LOG(igmpLogId, LOG_ERR,"error mr-subscribe failed for SHM_HEART_BEAT_MSGID \n");
+        return ERROR;
+    }
+
+    status = mrSubscribe(WSC_APPL_ID, MR_INTERNAL, CFM_CONF_UPDATE_MSGID);
+    if (status != MR_RET_OK)
+    {
+        //TRACE_LOG(igmpLogId, LOG_ERR,"error mr-subscribe failed for CFM_CONF_UPDATE_MSGID \n");
+         return ERROR;
+    }
+
+    return OK;
+}
+
+static void _messageCheck(MrIpcMsg_t *rxMsg)
+{
+    //TRACE_LOG(igmpLogId, LOG_INFO, "Msg received at IGMP: %d\n", rxMsg->ipcHdr.msgType);
+    switch (rxMsg->ipcHdr.msgType)
+    {
+    case SHM_HEART_BEAT_MSGID:
+    {
+       // TRACE_LOG(igmpLogId, LOG_INFO, "SHM_HEART_BEAT_MSGID Msg received \n");
+        _igmpProcessHeartBeat();
+        break;
+    }
+
+    // case CFM_CONF_UPDATE_MSGID:
+    // {
+    //    // TRACE_LOG(igmpLogId, LOG_INFO, "CFM_CONF_UPDATE_MSGID Msg received \n");
+    //     igmpLogId = (LOG_ERR > p_cfm->log_parms.applLogLevel[IGMP_APPL_ID]) ? LOG_ERR : p_cfm->log_parms.applLogLevel[IGMP_APPL_ID];
+
+    //     igmpRouterCfmCall();
+    //     igmpHostCfmCall();
+    //     break;
+    // }
+
+
+
+    default:
+    {
+       // TRACE_LOG(igmpLogId, LOG_PERM, "Invalid Msg received");
+        break;
+    }
+    }
+
+    return;
+}
+
+void * hb_thread(void *args)
+{
+
+    MrIpcMsg_t *rxMsg = (MrIpcMsg_t *)malloc(MR_MAX_MTU);
+    if (ERROR == _initMq())
+    {
+        free(rxMsg);
+        return NULL;
+    }
+    int fd_max = 0;
+    fd_set read_fds;
+
+    //TRACE_LOG(igmpLogId, LOG_INFO, "IGMP _getMessage");
+    while (TRUE)
+    {
+        FD_ZERO(&read_fds);
+        bzero(rxMsg, MR_MAX_MTU);
+        fd_max = _mqdesSelf;
+        FD_SET(_mqdesSelf, &read_fds);
+
+
+        if (select(fd_max + 1, &read_fds, NULL, NULL, NULL) == -1)
+        {
+            perror("select error..possibly rcvd a signal..ignoring");
+            continue;
+        }
+
+        if (errno == EINTR)
+            continue;
+
+
+        if (FD_ISSET(_mqdesSelf, &read_fds))
+        {
+            //TRACE_LOG(igmpLogId, LOG_INFO, "FD_ISSET _mqdesSelf");
+            if ((mq_receive(_mqdesSelf, (char *)rxMsg, MR_MAX_MTU, NULL) <= 0))
+            {
+                // TRACE_LOG(igmpLogId, LOG_ERR, "\nIGMP Message queue read failure or interrupt received\n");
+                // TRACE_LOG(igmpLogId, LOG_ERR, "IGMP : _mqdesSelf : %d\n", _mqdesSelf);
+                // TRACE_LOG(igmpLogId, LOG_ERR, "\n Error number %d \n", errno);
+            }
+            else
+            {
+              //  TRACE_LOG(igmpLogId, LOG_INFO, "Message received on IGMP Queue");
+                _messageCheck(rxMsg);
+            }
+        }
+
+     
+    }
+}
 
 int main(int argc, char *argv[])
 {
@@ -364,7 +496,21 @@ int main(int argc, char *argv[])
 
     std::string uri = "ws://127.0.0.1:9002";
 
-    input_file = argv[1];
+    input_file = "/vsat/apps/stats_config_old.json";
+    if (argv[1] != NULL)
+    {
+        _shmIgmpIndex = atoi(argv[1]);
+        _procName = argv[0];
+        //TRACE_LOG(igmpLogId, LOG_PERM, "\n igmp SHM id is %d", _shmIgmpIndex);
+        updateShmConfig();
+    }
+    else
+    {
+        exit(1);
+    }
+    pthread_t th;
+    pthread_create(&th, NULL, hb_thread, NULL);
+
 
     try
     {
@@ -374,7 +520,7 @@ int main(int argc, char *argv[])
 
         // Initialize ASIO
         c.init_asio();
-        
+
         /**
          * @brief Register our message handler
          * 
@@ -388,7 +534,7 @@ int main(int argc, char *argv[])
             std::cout << "could not create connection because: " << ec.message() << std::endl;
             return 0;
         }
-    
+
         /**
          * @brief Note that connect here only requests a connection. 
          * No network messages areexchanged until the event loop starts running in the next line.
@@ -408,4 +554,3 @@ int main(int argc, char *argv[])
         std::cout << e.what() << std::endl;
     }
 }
-dashboard
