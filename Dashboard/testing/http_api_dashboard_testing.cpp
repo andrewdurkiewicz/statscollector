@@ -4,7 +4,6 @@ Date: May 30, 2019
 */
 
 
-#include <http_api_dashboard_testing.h>
 #include <fstream>
 #include <json/json.h>
 #include <sqlite3.h>
@@ -17,11 +16,23 @@ using namespace std;
 //using namespace Express;
 //export LD_LIBRARY_PATH=.
 //To Run:
-//  g++ http_api_dashboard_testing.cpp -I. libSQLiteCpp.so libsqlite3.so -lpthread -ldl libSQLiteCpp.so -libjsoncpp.so ljsoncpp /home/user/jsoncpp/build-shared/libjsoncpp.so -o http_api_testing_executable && ./http_api_testing_executable 
+//  g++ http_api_dashboard_testing.cpp -I. libSQLiteCpp.so libsqlite3.so -lpthread -ldl libSQLiteCpp.so -libjsoncpp.so ljsoncpp /home/user/jsoncpp/build-shared/libjsoncpp.so -o http_api_testing_executable && ./http_api_testing_executable
+static int callback(void *data, int argc, char **argv, char **azColName)
+{
+    int i;
+    fprintf(stderr, "%s: ", (const char *)data);
 
+    for (i = 0; i < argc; i++)
+    {
+        printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+    }
 
-SQLite:: Database db("StatsCollector.db", SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-string q = "Select * from stats where Time between datetime('now','localtime','-10 days') and datetime('now', 'localtime');";    
+    printf("\n");
+    return 0;
+}
+
+SQLite:: Database db("/tmp/StatsCollector.db", SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+string q = "Select * from live where Time between datetime('now','localtime','-10 days') and datetime('now', 'localtime');";    
 
 Json::Value _initJson(string stat, string s){
     Json::Value proto_response;
@@ -30,7 +41,13 @@ Json::Value _initJson(string stat, string s){
     proto_response["Unit"] = s; //Unit for y-axis
     return proto_response;
 }
+sqlite3 *db_csv;
+char *zErrMsg = 0;
+void SQL_CMD(sqlite3* db2, string command)
+{
 
+    sqlite3_exec(db2, command.c_str(), callback, NULL, NULL);
+}
 void getRx()
 {
     SQLite::Statement query(db,q);
@@ -79,11 +96,21 @@ void getMx() //ManTRx
         ofstream o("Mx.json");
         o << response << endl;
 }
+void getData()
+{
+    int rc = sqlite3_open("/tmp/StatsCollector.db", &db_csv);
+    if(rc)
+    {
+        SQL_CMD(db_csv, ".output /fl0/thisismyoutputakjkj.csv");
+    }
+    SQL_CMD(db_csv, "select * from live where 1;");
+
+    std::cout << "done";
+}
 int main()
 {
-    getRx();
-    getTx();
-    getMx();
+
+    getData();
     return 0;
 }
 /*void initDashboardRoutes(Router & router)
