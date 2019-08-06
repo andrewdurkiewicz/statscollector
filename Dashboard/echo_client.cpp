@@ -149,7 +149,7 @@ static int callback(void *data, int argc, char **argv, char **azColName)
     printf("\n");
     return 0;
 }
-/*----------------------------------------------------------------------
+/*---------------------------------------------------------------------
 Function: SQL_CMD(std::string command)
 Purpose: 
 ------------------------------------------------------------------------*/
@@ -252,8 +252,6 @@ void on_message(client *c, websocketpp::connection_hdl hdl, message_ptr msg)
             sprintf(buffer, "%s VALUES (%s%s", SQL_input_live.c_str(), time_prefix.c_str(), SQL_thru);
 
             SQL_CMD(buffer);
-            std::ofstream os("/fl0/outofbuffer.txt");
-            os << buffer;
             day_counter++;
             max_counter++;
             SQL_CMD("Delete from live where Time < strftime('%Y-%m-%d %H:%M:%f', 'NOW','-1 hour');");
@@ -285,21 +283,20 @@ void on_open(client *c, websocketpp::connection_hdl hdl)
 {
     Json::Value configroot;
     Json::Reader configReader;
-    std::ifstream file("/fl0/stats_available.json");
+    std::ifstream file("/vsat/apps/stats_config_old.json");
     bool out = configReader.parse(file, configroot, true);
     if (!out)
     {
         std::cout << configReader.getFormattedErrorMessages();
     }
-    int i = 0;
-    while (configroot[i] != Json::Value::null)
+    Json::Value Parameters = configroot["parameters"];
+    for (int index = 0; index < Parameters.size(); ++index)
     {
         intf_val_t tmp = intf_val_t();
-        tmp.API_Callback = configroot[i].get("API_Callback", "A Default Value if not exists").asString();
-        tmp.label = configroot[i].get("Label", "A Default Value if not exists").asString();
-        tmp.unit = configroot[i].get("Unit", "A Default Value if not exists").asString();
+        tmp.API_Callback = Parameters[index]["API_Callback"].asString();
+        tmp.label = Parameters[index]["Label"].asString();
+        tmp.unit = Parameters[index]["Unit"].asString();
         nodes.push_back(tmp);
-        i++;
     }
     for (std::vector<intf_val_t>::const_iterator i = nodes.begin(); i != nodes.end(); ++i)
     {

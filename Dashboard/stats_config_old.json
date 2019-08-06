@@ -173,5 +173,245 @@
       "root_struct": "tx_pkt_stats",
       "name": "pep_byte_rate"
     }
-  ]
+  ],
+  "parameters": [
+  {
+    "Label": "LRxV4",
+    "Description": "V4 LAN Receive",
+    "API_Callback": "system_stats_curr_intf_lan_v4_pkt_stats_rx_pkt_stats_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "INIT"
+  },
+  {
+    "Label": "LRxV6",
+    "Description": "V6 LAN Receive",
+    "API_Callback": "system_stats_curr_intf_lan_v6_pkt_stats_rx_pkt_stats_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "DEFAULT"
+  },
+  {
+    "Label": "LTxV4",
+    "Description": "V4 LAN Transmit",
+    "API_Callback": "system_stats_curr_intf_lan_v4_pkt_stats_tx_pkt_stats_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "INIT"
+  },
+  {
+    "Label": "LTxV6",
+    "Description": "V6 LAN Transmit",
+    "API_Callback": "system_stats_curr_intf_lan_v6_pkt_stats_tx_pkt_stats_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "DEFAULT"
+  },
+  {
+    "Label": "MRx",
+    "Description": "Received Management",
+    "API_Callback": "system_stats_curr_intf_v6_mgmt_pkt_stats_rx_pkt_stats_byte_rate",
+    "Unit": "Kbps",
+    "Mode": "DEFAULT"
+  },
+  {
+    "Label": "MTx",
+    "Description": "Transmit Management",
+    "API_Callback": "system_stats_curr_intf_v6_mgmt_pkt_stats_tx_pkt_stats_byte_rate",
+    "Unit": "Kbps",
+    "Mode": "DEFAULT"
+  },
+  {
+    "Label": "WRxV4",
+    "Description": "V4 WAN Receive",
+    "API_Callback": "system_stats_curr_intf_wan_v4_pkt_stats_rx_pkt_stats_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "INIT"
+  },
+  {
+    "Label": "WRxV6",
+    "Description": "V6 WAN Receive",
+    "API_Callback": "system_stats_curr_intf_wan_v6_pkt_stats_rx_pkt_stats_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "DEFAULT"
+  },
+  {
+    "Label": "WTxV4",
+    "Description": "V4 WAN Transmit",
+    "API_Callback": "system_stats_curr_intf_wan_v4_pkt_stats_tx_pkt_stats_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "INIT"
+  },
+  {
+    "Label": "WTxV6",
+    "Description": "V6 WAN Transmit",
+    "API_Callback": "system_stats_curr_intf_wan_v6_pkt_stats_tx_pkt_stats_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "DEFAULT"
+  },
+  {
+    "Label": "UDP_LRXV4",
+    "Description": "V4 UDP LAN Receive",
+    "API_Callback": "system_stats_curr_intf_lan_v4_pkt_stats_rx_pkt_stats_udp_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "INIT"
+  },
+  {
+    "Label": "UDP_LTXV4",
+    "Description": "V4 UDP LAN Transmit",
+    "API_Callback": "system_stats_curr_intf_lan_v4_pkt_stats_tx_pkt_stats_udp_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "INIT"
+  },
+  {
+    "Label": "UDP_LRXV6",
+    "Description": "V6 UDP LAN Receive",
+    "API_Callback": "system_stats_curr_intf_lan_v6_pkt_stats_rx_pkt_stats_udp_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "DEFAULT"
+  },
+  {
+    "Label": "UDP_LTXV6",
+    "Description": "V6 UDP LAN Transmit",
+    "API_Callback": "system_stats_curr_intf_lan_v6_pkt_stats_tx_pkt_stats_udp_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "DEFAULT"
+  },
+  {
+    "Label": "UDP_WRXV4",
+    "Description": "V4 UDP WAN Receive",
+    "API_Callback": "system_stats_curr_intf_wan_v4_pkt_stats_rx_pkt_stats_udp_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "INIT"
+  },
+  {
+    "Label": "UDP_WTXV4",
+    "Description": "V4 UDP WAN Transmit",
+    "API_Callback": "system_stats_curr_intf_wan_v4_pkt_stats_tx_pkt_stats_udp_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "INIT"
+  },
+  {
+    "Label": "UDP_WRXV6",
+    "Description": "V6 UDP WAN Receive",
+    "API_Callback": "system_stats_curr_intf_wan_v6_pkt_stats_rx_pkt_stats_udp_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "DEFAULT"
+  },
+  {
+    "Label": "UDP_WTXV6",
+    "Description": "V6 UDP WAN Transmit",
+    "API_Callback": "system_stats_curr_intf_wan_v6_pkt_stats_tx_pkt_stats_udp_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "DEFAULT"
+  },
+  {
+    "Label": "TCP_LRXV4",
+    "Description": "V4 TCP LAN Receive",
+    "API_Callback": "system_stats_curr_intf_lan_v4_pkt_stats_rx_pkt_stats_tcp_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "DEFAULT"
+  },
+  {
+    "Label": "TCP_LTXV4",
+    "Description": "V4 TCP LAN Transmit",
+    "API_Callback": "system_stats_curr_intf_lan_v4_pkt_stats_tx_pkt_stats_tcp_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "DEFAULT"
+  },
+  {
+    "Label": "TCP_LRXV6",
+    "Description": "V6 TCP LAN Receive",
+    "API_Callback": "system_stats_curr_intf_lan_v6_pkt_stats_rx_pkt_stats_tcp_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "DEFAULT"
+  },
+  {
+    "Label": "TCP_LTXV6",
+    "Description": "V6 TCP LAN Transmit",
+    "API_Callback": "system_stats_curr_intf_lan_v6_pkt_stats_tx_pkt_stats_tcp_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "DEFAULT"
+  },
+  {
+    "Label": "TCP_WRXV4",
+    "Description": "V4 TCP WAN Receive",
+    "API_Callback": "system_stats_curr_intf_wan_v4_pkt_stats_rx_pkt_stats_tcp_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "DEFAULT"
+  },
+  {
+    "Label": "TCP_WTXV4",
+    "Description": "V4 TCP WAN Transmit",
+    "API_Callback": "system_stats_curr_intf_wan_v4_pkt_stats_tx_pkt_stats_tcp_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "DEFAULT"
+  },
+  {
+    "Label": "TCP_WRXV6",
+    "Description": "V6 TCP WAN Receive",
+    "API_Callback": "system_stats_curr_intf_wan_v6_pkt_stats_rx_pkt_stats_tcp_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "DEFAULT"
+  },
+  {
+    "Label": "TCP_WTXV6",
+    "Description": "V6 TCP WAN Transmit",
+    "API_Callback": "system_stats_curr_intf_wan_v6_pkt_stats_tx_pkt_stats_tcp_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "DEFAULT"
+  },
+  {
+    "Label": "PEP_LRXV4",
+"Description": "V4 PEP LAN Receive",
+    "API_Callback": "system_stats_curr_intf_lan_v4_pkt_stats_rx_pkt_stats_pep_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "DEFAULT"
+  },
+  {
+    "Label": "PEP_LTXV4",
+"Description": "V4 PEP LAN Transmit",
+    "API_Callback": "system_stats_curr_intf_lan_v4_pkt_stats_tx_pkt_stats_pep_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "DEFAULT"
+  },
+  {
+    "Label": "PEP_LRXV6",
+"Description": "V6 PEP LAN Receive",
+    "API_Callback": "system_stats_curr_intf_lan_v6_pkt_stats_rx_pkt_stats_pep_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "DEFAULT"
+  },
+  {
+    "Label": "PEP_LTXV6",
+"Description": "V6 PEP LAN Transmit",
+    "API_Callback": "system_stats_curr_intf_lan_v6_pkt_stats_tx_pkt_stats_pep_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "DEFAULT"
+  },
+  {
+    "Label": "PEP_WRXV4",
+    "Description": "V4 PEP WAN Receive",
+    "API_Callback": "system_stats_curr_intf_wan_v4_pkt_stats_rx_pkt_stats_pep_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "DEFAULT"
+  },
+  {
+    "Label": "PEP_WTXV4",
+    "Description": "V4 PEP WAN Transmit",
+    "API_Callback": "system_stats_curr_intf_wan_v4_pkt_stats_tx_pkt_stats_pep_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "DEFAULT"
+  },
+  {
+    "Label": "PEP_WRXV6",
+    "Description": "V6 PEP WAN Receive",
+    "API_Callback": "system_stats_curr_intf_wan_v6_pkt_stats_rx_pkt_stats_pep_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "DEFAULT"
+  },
+  {
+    "Label": "PEP_WTXV6",
+    "Description": "V6 PEP WAN Transmit",
+    "API_Callback": "system_stats_curr_intf_wan_v6_pkt_stats_tx_pkt_stats_pep_byte_rate",
+    "Unit": "Mbps",
+    "Mode": "DEFAULT"
+  }
+]
 }
