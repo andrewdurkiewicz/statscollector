@@ -1,0 +1,1215 @@
+June 2018
+
+TERMINAL : 7.0.0.17
+    Linux (none) 3.10.53+kern_7.0.0.12 #40 SMP Fri Jun 8 16:04:04 EDT 2018 armv7l GNU/Linux
+
+IPGW: 3.4.6.10
+    Build Date: May 25 2018 17:48:32 EDT 
+    J2SEA060HNSIGW11X001 :
+        assocCfCongestionBasedThrottlingEnabled=1
+
+SGW : 3.4.5.7 - 6/10/18 17:17:57
+    LABEL REUSE TURNED ON [config->link layer [gse]] : 10.41.17.164 
+    JESEA000SGISGWHC01;  J3SEA060SGICROC0100
+
+Each test done for 10mins:
+===============================================================================
+UDP FWD 60 BYTES with RoHc [SMALL PKTS]
+    Date : 
+        6/10/18
+
+    IPGW CFG:
+        ASSOC BW Set to 50 , CIR set to 400 Mbps
+
+    VSAT CFG:
+        DPP Firmware 0x0120A308
+        UPP Firmware 0x06051754
+            inrouteCfUPPDefaultTraceOption=0x1
+        MODCOD 92 [64APSK 3/4]
+
+    RESULT:
+        2 Flows, one from WASPC and another from 201.
+        20M sent from each client [41K pps] - 60 bytes payload
+
+        82K pps
+        WLSB 128:  ROHC 71% [20/28 : 28 bytes header compressed to 8 bytes]
+        SATDATA:86%; LANTX:67; SI:27%, 4CPUS: 45% 
+
+        *** Limitation SATDATA ***
+
+    SUPPORTING DATA:
+
+		top - 17:36:42 up 22 min,  1 user,  load average: 1.52, 1.00, 0.72
+		Tasks: 104 total,   4 running, 100 sleeping,   0 stopped,   0 zombie
+		Cpu(s):  0.6%us, 39.6%sy,  0.0%ni, 53.5%id,  0.0%wa,  0.0%hi,  6.4%si,  0.0%st
+		Mem:    448952k total,   275504k used,   173448k free,        0k buffers
+		Swap:        0k total,        0k used,        0k free,   169164k cached
+		
+		  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAND          
+		 1623 root     -16   0     0    0    0 R   89  0.0   5:12.99 1 satdata          
+		 1096 root     -16   0     0    0    0 R   67  0.0   3:56.13 3 lanTx            
+		 1600 root      20   0  145m  19m  18m S    5  4.5   1:04.22 3 uplink           
+		 1599 root      20   0  146m 5380 3996 S    4  1.2   0:39.96 2 downlink         
+		 1108 root     -16   0     0    0    0 S    1  0.0   0:05.97 2 kpep             
+		
+		
+		top - 17:36:05 up 22 min,  1 user,  load average: 0.86, 0.82, 0.65
+		Tasks: 104 total,   5 running,  99 sleeping,   0 stopped,   0 zombie
+		Cpu0  :  1.0%us,  1.3%sy,  0.0%ni, 67.7%id,  0.0%wa,  0.0%hi, 30.0%si,  0.0%st
+		Cpu1  :  0.0%us, 88.4%sy,  0.0%ni, 11.6%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu2  :  0.0%us,  0.3%sy,  0.0%ni, 99.7%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu3  :  1.3%us, 60.1%sy,  0.0%ni, 38.6%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Mem:    448952k total,   275316k used,   173636k free,        0k buffers
+		Swap:        0k total,        0k used,        0k free,   169164k cached
+		
+		  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAND          
+		 1623 root     -16   0     0    0    0 R   89  0.0   4:39.55 1 satdata          
+		 1096 root     -16   0     0    0    0 R   67  0.0   3:31.08 3 lanTx            
+		 1600 root      20   0  145m  19m  18m S    5  4.5   1:02.32 3 uplink           
+		 1599 root      20   0  146m 5380 3996 S    4  1.2   0:38.36 2 downlink         
+		 1591 root     -16   0  115m 3532 2716 S    1  0.8   0:02.45 2 tfw              
+		 4875 root      20   0  2204  924  720 R    1  0.2   0:02.86 2 top              
+
+
+		iperf -s -u -i10 -p 15101
+		------------------------------------------------------------
+		Server listening on UDP port 15101
+		Receiving 1470 byte datagrams
+		UDP buffer size:  110 KByte (default)
+		------------------------------------------------------------
+		[  3] local 172.25.101.2 port 15101 connected with 192.168.158.151 port 49925
+		[ ID] Interval       Transfer     Bandwidth        Jitter   Lost/Total Datagrams
+		[  3]  0.0-10.0 sec  23.8 MBytes  20.0 Mbits/sec   0.027 ms    0/416226 (0%)
+		[  3]  0.0-300.0 sec   715 MBytes  20.0 Mbits/sec   0.642 ms  660/12495097 (0.0053%)
+		
+		
+		iperf -s -u -i10 -p15102 
+		------------------------------------------------------------
+		Server listening on UDP port 15102
+		Receiving 1470 byte datagrams
+		UDP buffer size:  110 KByte (default)
+		------------------------------------------------------------
+		[  3] local 172.25.101.2 port 15102 connected with 192.168.14.201 port 33977
+		[ ID] Interval       Transfer     Bandwidth        Jitter   Lost/Total Datagrams
+		[  3]  0.0-10.0 sec  23.8 MBytes  20.0 Mbits/sec   0.028 ms    1/416103 (0.00024%)
+		[  3]  0.0-300.0 sec   714 MBytes  20.0 Mbits/sec   0.048 ms  497/12482113 (0.004%)
+		
+		Udp: InDatagrams    NoPorts InErrors OutDatagrams RcvbufErrors SndbufErrors
+		Udp: 38171060       0       407631      1877645     0           0
+		Udp: 63147152       0       408790      1877670     0           0
+		            Lost pkt        1159
+		[  3]  0.0-600.0 sec  1.39 GBytes  19.9 Mbits/sec   0.042 ms    0/24850388 (0%)
+
+===============================================================================
+
+UDP RTN 60 BYTES [SMALL PKTS]
+    Date : 6/10/18
+
+    VSAT CFG:
+        ASSSOC 50M
+        12M 9/10
+        Packets routed from pre-rout hook.
+
+        DPP Firmware 0x0120A308
+        UPP Firmware 0x06051754
+            inrouteCfUPPDefaultTraceOption=0x1
+
+    RESULT:
+
+        33K pps  [16M - 60 bytes payload]
+        WLSB 128:  ROHC 71% [20/28 : 28 bytes header compressed to 8 bytes]
+        KPEP:69%; WanTx:26%, SI: 81%; 4CPUS: 48%
+
+        *** Inroute BW ***
+        MAYBE another 5K of packets can be sent if the BW is available.
+    
+    SUPPORTING DATA:
+
+		top - 18:04:35 up 50 min,  1 user,  load average: 0.92, 0.72, 0.79
+		Tasks: 104 total,   2 running, 102 sleeping,   0 stopped,   0 zombie
+		Cpu(s):  4.5%us, 18.6%sy,  0.0%ni, 60.4%id,  0.0%wa,  0.0%hi, 16.6%si,  0.0%st
+		Mem:    448952k total,   279956k used,   168996k free,        0k buffers
+		Swap:        0k total,        0k used,        0k free,   172932k cached
+		
+		  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAND          
+		 1108 root     -16   0     0    0    0 R   69  0.0   6:15.03 2 kpep             
+		 1109 root     -16   0     0    0    0 S   27  0.0   2:14.53 3 wanTx            
+		 1600 root      20   0  145m  19m  18m S   15  4.5   3:18.98 3 uplink           
+		 1599 root      20   0  146m 5380 3996 S   10  1.2   2:15.02 1 downlink         
+		   10 root      20   0     0    0    0 S    2  0.0   0:22.13 0 rcuc/0           
+		    3 root      20   0     0    0    0 S    1  0.0   0:10.78 0 ksoftirqd/0      
+		11993 root      20   0  2204  924  720 R    1  0.2   0:01.59 1 top              
+		   21 root      20   0     0    0    0 S    0  0.0   0:04.43 3 rcuc/3           
+		
+		
+		top - 18:05:16 up 51 min,  1 user,  load average: 1.04, 0.78, 0.81
+		Tasks: 104 total,   3 running, 101 sleeping,   0 stopped,   0 zombie
+		Cpu0  :  2.0%us,  0.7%sy,  0.0%ni, 32.3%id,  0.0%wa,  0.0%hi, 65.0%si,  0.0%st
+		Cpu1  :  0.7%us,  4.0%sy,  0.0%ni, 95.4%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu2  :  0.0%us, 61.4%sy,  0.0%ni, 38.6%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu3  : 12.2%us,  6.6%sy,  0.0%ni, 81.2%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Mem:    448952k total,   280244k used,   168708k free,        0k buffers
+		Swap:        0k total,        0k used,        0k free,   173228k cached
+		
+		  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAND          
+		 1108 root     -16   0     0    0    0 R   70  0.0   6:43.64 2 kpep             
+		 1109 root     -16   0     0    0    0 R   28  0.0   2:25.86 3 wanTx            
+		 1600 root      20   0  145m  19m  18m S   15  4.5   3:25.00 3 uplink           
+		 1599 root      20   0  146m 5380 3996 S   10  1.2   2:19.24 1 downlink         
+		   10 root      20   0     0    0    0 S    3  0.0   0:23.14 0 rcuc/0           
+		    3 root      20   0     0    0    0 S    1  0.0   0:11.29 0 ksoftirqd/0      
+
+
+		./was_iperf -s -i10 -u
+		------------------------------------------------------------
+		Server listening on UDP port 5001
+		Receiving 1470 byte datagrams
+		UDP buffer size:  122 KByte (default)
+		------------------------------------------------------------
+		[  3] local 192.168.158.151 port 5001 connected with 172.25.101.2 port 44599
+		[ ID] Interval       Transfer     Bandwidth        Jitter   Lost/Total Datagrams
+		[  3]  0.0-10.0 sec  18.5 MBytes  15.5 Mbits/sec   0.034 ms    1/322551 (0.00031%)
+		[  3] 10.0-20.0 sec  19.4 MBytes  16.3 Mbits/sec   0.033 ms    0/338766 (0%)
+		[  3]  0.0-300.0 sec   572 MBytes  16.0 Mbits/sec   0.045 ms  533/9992840 (0.0053%)
+		
+		Udp: InDatagrams  NoPorts   InErrors
+		Udp: 577222581    36146293  20567
+		Udp: 587215424    36146293  21100
+
+
+===============================================================================
+
+UDP SIMUL 60 BYTES [SMALL PKTS] 
+    Date : 6/10/18
+
+    IPGW CFG:
+        ASSOC BW Set to 50 , CIR set to 500 Mbps
+        RoHc enabled at VSAT and IPGW
+
+
+    VSAT CFG:
+
+        DPP Firmware 0x0120A308
+        UPP Firmware 0x06051754
+            inrouteCfUPPDefaultTraceOption=0x1
+
+        MODCOD 92 [64APSK 3/4]
+        RoHc enabled at VSAT and IPGW
+        WLSB 128
+
+    RESULT:
+        20M FWD [down], 16M RET [up]
+        41K down, 33 up.
+        WLSB 128  : 71% in both directions 
+            [20/28 : 28 bytes header compressed to 8 bytes]
+
+
+    SUPPORTING DATA:
+
+
+		top - 18:40:24 up  1:26,  1 user,  load average: 2.16, 1.33, 0.96
+		Tasks: 104 total,   4 running, 100 sleeping,   0 stopped,   0 zombie
+		Cpu(s):  6.1%us, 44.3%sy,  0.0%ni, 29.7%id,  0.0%wa,  0.0%hi, 19.9%si,  0.0%st
+		Mem:    448952k total,   282084k used,   166868k free,        0k buffers
+		Swap:        0k total,        0k used,        0k free,   175272k cached
+		
+		  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAND          
+		 1108 root     -16   0     0    0    0 R   77  0.0  16:33.56 2 kpep             
+		 1623 root     -16   0     0    0    0 S   64  0.0  11:19.27 1 satdata          
+		 1096 root     -16   0     0    0    0 R   38  0.0   8:14.86 3 lanTx            
+		 1109 root     -16   0     0    0    0 R   29  0.0   6:11.99 3 wanTx            
+		 1599 root      20   0  146m 5380 3996 S   24  1.2   4:33.70 0 downlink         
+		 1600 root      20   0  145m  19m  18m S   16  4.5   6:28.12 3 uplink           
+		    3 root      20   0     0    0    0 S   11  0.0   0:37.52 0 ksoftirqd/0      
+		   10 root      20   0     0    0    0 S    5  0.0   0:50.11 0 rcuc/0           
+		 1596 root      20   0  115m 3412 2612 S    2  0.8   0:15.03 0 ledif            
+		
+		top - 18:39:30 up  1:25,  1 user,  load average: 1.02, 1.02, 0.84
+		Tasks: 112 total,   6 running, 106 sleeping,   0 stopped,   0 zombie
+		Cpu0  :  0.3%us,  3.5%sy,  0.0%ni, 16.8%id,  0.0%wa,  0.0%hi, 79.4%si,  0.0%st
+		Cpu1  :  1.6%us, 70.6%sy,  0.0%ni, 27.8%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu2  :  0.0%us, 58.5%sy,  0.0%ni, 41.5%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu3  : 10.4%us, 66.1%sy,  0.0%ni, 23.4%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Mem:    448952k total,   282480k used,   166472k free,        0k buffers
+		Swap:        0k total,        0k used,        0k free,   174804k cached
+		
+		  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAND          
+		 1108 root     -16   0     0    0    0 R   78  0.0  15:51.58 2 kpep             
+		 1623 root     -16   0     0    0    0 S   65  0.0  10:44.35 1 satdata          
+		 1096 root     -16   0     0    0    0 S   39  0.0   7:54.02 3 lanTx            
+		 1109 root     -16   0     0    0    0 S   29  0.0   5:56.50 3 wanTx            
+		 1599 root      20   0  146m 5380 3996 S   23  1.2   4:21.40 0 downlink         
+		 1600 root      20   0  145m  19m  18m S   16  4.5   6:19.57 3 uplink           
+		    3 root      20   0     0    0    0 R   10  0.0   0:31.80 0 ksoftirqd/0      
+		   10 root      20   0     0    0    0 S    5  0.0   0:47.29 0 rcuc/0           
+		 1596 root      20   0  115m 3412 2612 S    2  0.8   0:14.14 0 ledif            
+
+
+		iperf -s -u -i10
+		------------------------------------------------------------
+		Server listening on UDP port 5001
+		Receiving 1470 byte datagrams
+		UDP buffer size:  126 KByte (default)
+		------------------------------------------------------------
+		[  3] local 192.168.14.201 port 5001 connected with 172.25.101.2 port 37540
+		[ ID] Interval       Transfer     Bandwidth        Jitter   Lost/Total Datagrams
+		[  3]  0.0-10.0 sec  18.5 MBytes  15.5 Mbits/sec   0.072 ms    1/322916 (0.00031%)
+		[  3] 280.0-290.0 sec  19.1 MBytes  16.0 Mbits/sec   0.033 ms    0/333134 (0%)
+		[  3]  0.0-300.0 sec   572 MBytes  16.0 Mbits/sec   0.040 ms  194/9995386 (0.0019%)
+		
+		iperf -s -u -i10 -p 15101
+		------------------------------------------------------------
+		Server listening on UDP port 15101
+		Receiving 1470 byte datagrams
+		UDP buffer size:  110 KByte (default)
+		------------------------------------------------------------
+		[  3] local 172.25.101.2 port 15101 connected with 192.168.158.151 port 56020
+		[ ID] Interval       Transfer     Bandwidth        Jitter   Lost/Total Datagrams
+		[  3]  0.0-10.0 sec  23.8 MBytes  20.0 Mbits/sec   0.030 ms   10/416351 (0.0024%)
+		[  3] 290.0-300.0 sec  23.8 MBytes  20.0 Mbits/sec   0.023 ms   44/416473 (0.011%)
+		[  3]  0.0-300.0 sec   715 MBytes  20.0 Mbits/sec   0.272 ms  642/12494617 (0.0051%)
+
+===============================================================================
+
+UDP FWD 1440 [FULL SIZE]
+    Date : 4/11/18
+        *** same perf on 5/14 ... 7.0.0.16 with removal of vlan loop in mpe.c ***
+
+    IPGW CFG:
+        MSS 1440 bytes [MTU 1500] ; 
+        ASSOC BW Set to 500 , CIR set to 500 Mbps
+
+    VSAT CFG:
+        DPP Firmware A306 [Liming's enhancements]
+        UPP Firmware 0x02021019
+        RoHc enabled
+
+    RESULT:
+        405 Mbps 
+        WLSB 128:  ROHC 71% [20/28 : 28 bytes header compressed to 8 bytes]
+        SATDATA:93%; LANTX:75%; SI: 15%; 4CPUS:41%
+        LABEL reuse turned off to ge the throughput.
+
+        *** Limitation SATDATA ***
+        
+    SUPPORTING DATA:
+
+		top - 14:23:23 up 44 min,  1 user,  load average: 1.63, 1.02, 0.58
+		Tasks: 104 total,   4 running, 100 sleeping,   0 stopped,   0 zombie
+		Cpu(s):  0.9%us, 44.7%sy,  0.0%ni, 49.8%id,  0.0%wa,  0.0%hi,  4.5%si,  0.0%st
+		Mem:    383928k total,   270528k used,   113400k free,        0k buffers
+		Swap:        0k total,        0k used,        0k free,   154248k cached
+		
+		  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAND          
+		 1617 root     -16   0     0    0    0 R   93  0.0   2:11.86 1 satdata          
+		 1098 root     -16   0     0    0    0 R   75  0.0   1:46.10 3 lanTx            
+		 1598 root      20   0  154m  19m  18m S   12  5.2   2:59.28 3 uplink           
+		 1597 root      20   0  146m 5400 4016 S    5  1.4   1:08.74 2 downlink         
+		 1110 root     -16   0     0    0    0 S    1  0.0   1:04.05 2 kpep             
+		 1594 root      20   0  114m 3420 2620 S    1  0.9   0:05.40 0 ledif            
+		
+		top - 14:23:57 up 44 min,  1 user,  load average: 2.30, 1.26, 0.68
+		Tasks: 104 total,   6 running,  98 sleeping,   0 stopped,   0 zombie
+		Cpu0  :  1.0%us,  1.3%sy,  0.0%ni, 82.2%id,  0.0%wa,  0.0%hi, 15.5%si,  0.0%st
+		Cpu1  :  0.0%us, 93.4%sy,  0.0%ni,  6.6%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu2  :  1.0%us,  2.6%sy,  0.0%ni, 96.4%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu3  :  2.6%us, 83.8%sy,  0.0%ni, 13.5%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Mem:    383928k total,   269912k used,   114016k free,        0k buffers
+		Swap:        0k total,        0k used,        0k free,   154292k cached
+		
+		  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAND          
+		 1617 root     -16   0     0    0    0 R   92  0.0   2:43.19 1 satdata          
+		 1098 root     -16   0     0    0    0 R   74  0.0   2:11.50 3 lanTx            
+		 1598 root      20   0  154m  19m  18m R   13  5.2   3:03.41 3 uplink           
+		 1597 root      20   0  146m 5400 4016 S    5  1.4   1:10.29 2 downlink         
+		 1110 root     -16   0     0    0    0 S    2  0.0   1:04.69 2 kpep             
+		 9187 root      20   0  263m 7544 4548 S    1  2.0   0:02.45 2 snmpd            
+		13320 root      20   0  2204  924  720 R    1  0.2   0:00.09 2 top              
+		
+		
+		./was_iperf -c 172.25.215.18  -u -l1470 -b 405M -t600 -i10 -p5101
+		------------------------------------------------------------
+		Client connecting to 172.25.215.18, UDP port 5101
+		Sending 1470 byte datagrams
+		UDP buffer size:  122 KByte (default)
+		------------------------------------------------------------
+		[  3] local 192.168.158.151 port 55252 connected with 172.25.215.18 port 5101
+		[ ID] Interval       Transfer     Bandwidth
+		[  3]  0.0-10.0 sec   483 MBytes   405 Mbits/sec
+		[  3]  0.0-600.0 sec  28.3 GBytes   405 Mbits/sec
+		[  3] Sent 20681919 datagrams
+		[  3] Server Report:
+		[  3]  0.0-600.0 sec  28.3 GBytes   405 Mbits/sec   1.129 ms    0/20681918 (0%)
+		
+		
+		numactl -C 1 iperf -s -i10 -u -w4M -p5101
+		------------------------------------------------------------
+		Server listening on UDP port 5101
+		Receiving 1470 byte datagrams
+		UDP buffer size: 8.00 MByte (WARNING: requested 4.00 MByte)
+		------------------------------------------------------------
+		[  4] local 172.25.215.18 port 5101 connected with 192.168.158.151 port 55252
+		[  4]  0.0-10.0 sec   483 MBytes   405 Mbits/sec   0.033 ms    0/344588 (0%)
+		[  4]  0.0-600.0 sec  28.3 GBytes   405 Mbits/sec   1.129 ms    0/20681918 (0%)
+
+`
+===============================================================================
+UDP RET 1440 [FULL SIZE]
+    Date : 4/11/18
+
+    VSAT CFG:
+        DPP Firmware A305 [Liming's enhancements]
+        UPP Firmware 0x02021019
+        RoHc enabled
+
+    RESULT:
+
+    ** 19.6 Mbps **
+
+    SUPPORTING DATA:
+
+		top - 17:49:41 up  4:10,  1 user,  load average: 0.81, 0.40, 0.25
+		Tasks: 104 total,   1 running, 103 sleeping,   0 stopped,   0 zombie
+		Cpu(s):  1.2%us,  3.3%sy,  0.0%ni, 94.4%id,  0.0%wa,  0.0%hi,  1.1%si,  0.0%st
+		Mem:    383928k total,   276532k used,   107396k free,        0k buffers
+		Swap:        0k total,        0k used,        0k free,   158804k cached
+		
+		  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAND          
+		 1598 root      20   0  154m  19m  18m S   13  5.2  14:33.99 3 uplink           
+		 1110 root     -16   0     0    0    0 S    7  0.0   3:54.96 2 kpep             
+		 1111 root     -16   0     0    0    0 S    6  0.0   0:25.13 3 wanTx            
+		 1597 root      20   0  146m 5404 4016 S    3  1.4   6:01.82 1 downlink         
+		
+		top - 17:49:09 up  4:09,  1 user,  load average: 0.50, 0.31, 0.22
+		Tasks: 104 total,   2 running, 102 sleeping,   0 stopped,   0 zombie
+		Cpu0  :  0.3%us,  2.0%sy,  0.0%ni, 92.1%id,  0.0%wa,  0.0%hi,  5.6%si,  0.0%st
+		Cpu1  :  0.7%us,  2.0%sy,  0.0%ni, 97.4%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu2  :  0.0%us,  6.3%sy,  0.0%ni, 93.7%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu3  :  6.6%us,  5.3%sy,  0.0%ni, 88.1%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Mem:    383928k total,   276160k used,   107768k free,        0k buffers
+		Swap:        0k total,        0k used,        0k free,   158508k cached
+		
+		  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAND          
+		 1598 root      20   0  154m  19m  18m S   13  5.2  14:29.79 3 uplink           
+		 1110 root     -16   0     0    0    0 S    7  0.0   3:52.79 2 kpep             
+		 1111 root     -16   0     0    0    0 S    6  0.0   0:23.14 3 wanTx            
+		 1597 root      20   0  146m 5404 4016 S    3  1.4   6:00.84 1 downlink         
+		   10 root      20   0     0    0    0 R    0  0.0   0:28.23 0 rcuc/0           
+
+
+		iperf -c 192.168.14.201 -u -l1470 -b19M -i10 -t600 -p10001
+		------------------------------------------------------------
+		Client connecting to 192.168.14.201, UDP port 10001
+		Sending 1470 byte datagrams
+		UDP buffer size:  110 KByte (default)
+		------------------------------------------------------------
+		[  3] local 172.25.215.18 port 36599 connected with 192.168.14.201 port 10001
+		[ ID] Interval       Transfer     Bandwidth
+		[  3]  0.0-10.0 sec  22.7 MBytes  19.0 Mbits/sec
+        [  3]  0.0-600.0 sec  1.33 GBytes  19.0 Mbits/sec
+        [  3] Sent 970875 datagrams
+        [  3] Server Report:
+        [  3]  0.0-599.5 sec  1.33 GBytes  19.0 Mbits/sec   0.645 ms   19/970874 (0.002%)
+		
+		
+		iperf -s -u -i1 -p 10001
+		------------------------------------------------------------
+		Server listening on UDP port 10001
+		Receiving 1470 byte datagrams
+		UDP buffer size:  126 KByte (default)
+		------------------------------------------------------------
+		[  3] local 192.168.14.201 port 10001 connected with 172.25.215.18 port 44407
+		[ ID] Interval       Transfer     Bandwidth        Jitter   Lost/Total Datagrams
+		[  3]  0.0- 1.0 sec  2.25 MBytes  18.9 Mbits/sec   0.651 ms    0/ 1608 (0%)
+        [  3]  0.0-599.5 sec  1.33 GBytes  19.0 Mbits/sec   0.646 ms   19/970874 (0.002%)
+
+===============================================================================
+
+UDP SIMUL 1440 BYTES [FULL PKTS]
+    Date : 6/10/18
+    IPGW CFG:
+        ASSOC BW Set to 50 , CIR set to 500 Mbps
+
+    VSAT CFG:
+        DPP Firmware 0x0120A308
+        UPP Firmware 0x06051754
+            inrouteCfUPPDefaultTraceOption=0x1
+
+        MODCOD 92 [64APSK 3/4]
+
+    RESULT:
+        380 Mbps [FWD:down], 19 Mbps [RET:UP]
+        WLSB 128  : 71% in both directions 
+            [20/28 : 28 bytes header compressed to 8 bytes]
+        KPEP:10%; SATDAT:96%; LANTX:65%; SI:42%; 4CPUS:48%
+        RCVD:970871; Sent: 968233; RED Drop:2638; not TPQ drop
+        *** Limitation SATDATA ***
+            
+
+    SUPPORTING DATA:
+
+
+		top - 19:24:13 up  2:10,  1 user,  load average: 1.89, 1.58, 1.53
+		Tasks: 104 total,   3 running, 101 sleeping,   0 stopped,   0 zombie
+		Cpu(s):  2.9%us, 45.7%sy,  0.0%ni, 45.6%id,  0.0%wa,  0.0%hi,  5.8%si,  0.0%st
+		Mem:    448952k total,   284632k used,   164320k free,        0k buffers
+		Swap:        0k total,        0k used,        0k free,   175016k cached
+		
+		  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAND          
+		 1623 root     -16   0     0    0    0 R   91  0.0  26:12.31 1 satdata          
+		 1096 root     -16   0     0    0    0 S   68  0.0  19:14.53 3 lanTx            
+		 1600 root      20   0  145m  19m  18m S   17  4.5  10:36.19 3 uplink           
+		 1108 root     -16   0     0    0    0 S   10  0.0  20:49.95 2 kpep             
+		 1109 root     -16   0     0    0    0 R    8  0.0   8:15.54 3 wanTx            
+		 1599 root      20   0  146m 5384 3996 S    7  1.2   6:56.86 2 downlink         
+		
+		top - 19:25:08 up  2:11,  1 user,  load average: 3.43, 2.06, 1.70
+		Tasks: 104 total,   8 running,  96 sleeping,   0 stopped,   0 zombie
+		Cpu0  :  1.3%us,  3.3%sy,  0.0%ni, 65.0%id,  0.0%wa,  0.0%hi, 30.4%si,  0.0%st
+		Cpu1  :  0.0%us, 91.7%sy,  0.0%ni,  8.3%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu2  :  0.0%us,  9.6%sy,  0.0%ni, 90.4%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu3  : 18.2%us, 78.2%sy,  0.0%ni,  3.6%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Mem:    448952k total,   282148k used,   166804k free,        0k buffers
+		Swap:        0k total,        0k used,        0k free,   174180k cached
+		
+		  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAND          
+		 1623 root     -16   0     0    0    0 R   93  0.0  27:02.67 1 satdata          
+		 1096 root     -16   0     0    0    0 R   68  0.0  19:51.38 3 lanTx            
+		 1600 root      20   0  145m  19m  18m S   19  4.5  10:46.46 3 uplink           
+		 1108 root     -16   0     0    0    0 S   10  0.0  20:55.54 2 kpep             
+		 1109 root     -16   0     0    0    0 R    8  0.0   8:19.96 3 wanTx            
+		 1599 root      20   0  146m 5384 3996 S    7  1.2   7:00.87 2 downlink         
+
+		numactl -C 1 iperf -s -u -i10 -p 15101
+		------------------------------------------------------------
+		Server listening on UDP port 15101
+		Receiving 1470 byte datagrams
+		UDP buffer size:  110 KByte (default)
+		------------------------------------------------------------
+		[  3] local 172.25.101.2 port 15101 connected with 192.168.158.151 port 42294
+		[ ID] Interval       Transfer     Bandwidth        Jitter   Lost/Total Datagrams
+		[  3]  0.0-10.0 sec   450 MBytes   377 Mbits/sec   0.034 ms  800/321512 (0.25%)
+		[  3] 290.0-300.0 sec   452 MBytes   379 Mbits/sec   0.038 ms   49/322535 (0.015%)
+		[  3]  0.0-300.1 sec  13.2 GBytes   379 Mbits/sec   0.034 ms 4986/9676559 (0.052%)
+		Udp: 109013330 6 436692 
+		Udp: 118684926 6 441577
+		    pkts dropped at PC: 4885
+		
+		iperf -s -u -i10
+		------------------------------------------------------------
+		Server listening on UDP port 5001
+		Receiving 1470 byte datagrams
+		UDP buffer size:  126 KByte (default)
+		------------------------------------------------------------
+		[  3] local 192.168.14.201 port 5001 connected with 172.25.101.2 port 55907
+		[ ID] Interval       Transfer     Bandwidth        Jitter   Lost/Total Datagrams
+		[  3]  0.0-10.0 sec  23.0 MBytes  19.3 Mbits/sec   0.554 ms    0/16435 (0%)
+		[  3]  0.0-299.7 sec   680 MBytes  19.0 Mbits/sec   0.532 ms  206/485437 (0.042%)
+		
+		---- all packets are transmitted successfully ---
+
+===============================================================================
+
+TCP FWD MSS 100 [SMALL SIZE]
+    Date : 6/10/18
+    IPGW CFG:
+        MSS 100 bytes [MTU 160] ; 
+        MUX disabled 
+        ASSOC BW Set to 50 , CIR set to 500 Mbps
+        MAX SAT throughput set to 25Mbps
+
+    VSAT CFG:
+        MSS 100 bytes
+        MUX disabled 
+        RoHc enabled
+        DPP Firmware 0x0120A308
+        UPP Firmware 0x06051754
+            inrouteCfUPPDefaultTraceOption=0x1
+
+        W2l Buf limit 34836 
+        HASH size set to 32K
+        W2L Memory limit set to 60
+        ACK delay 100ms [VSAT] 200ms [IPGW]
+        MODCOD 92 [64APSK 3/4]
+
+    RESULT:
+        62K [50M]
+        with ackdelay set to 100ms, we can achieve 50M [62K]
+        WLSB 128
+        *** KPEP proc utilization is higher than ER3 ***
+
+    SUPPORTING DATA:
+
+		top - 00:59:50 up  7:46,  1 user,  load average: 0.41, 0.19, 0.16
+		Tasks: 104 total,   8 running,  96 sleeping,   0 stopped,   0 zombie
+		Cpu(s):  1.6%us, 56.6%sy,  0.0%ni, 25.5%id,  0.0%wa,  0.0%hi, 16.3%si,  0.0%st
+		Mem:    448952k total,   288016k used,   160936k free,        0k buffers
+		Swap:        0k total,        0k used,        0k free,   175040k cached
+		
+		  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAND          
+		 1108 root     -16   0     0    0    0 R   93  0.0  28:25.73 2 kpep             
+		 1623 root     -16   0     0    0    0 R   66  0.0  34:28.78 1 satdata          
+		 1096 root     -16   0     0    0    0 R   55  0.0  25:50.09 3 lanTx            
+		 1600 root      20   0  145m  19m  18m S   14  4.5  26:59.57 3 uplink           
+		 1599 root      20   0  146m 5384 3996 S   13  1.2  15:15.68 0 downlink         
+		    3 root      20   0     0    0    0 R    8  0.0   1:37.99 0 ksoftirqd/0      
+		 1591 root     -16   0  115m 3532 2716 S    2  0.8   0:54.58 0 tfw              
+		
+		top - 01:00:36 up  7:46,  1 user,  load average: 2.31, 0.72, 0.34
+		Tasks: 104 total,   5 running,  99 sleeping,   0 stopped,   0 zombie
+		Cpu0  :  1.0%us,  3.6%sy,  0.0%ni, 40.1%id,  0.0%wa,  0.0%hi, 55.3%si,  0.0%st
+		Cpu1  :  0.3%us, 68.8%sy,  0.0%ni, 30.9%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu2  :  0.0%us, 96.1%sy,  0.0%ni,  3.9%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu3  : 15.1%us, 50.7%sy,  0.0%ni, 34.2%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Mem:    448952k total,   286512k used,   162440k free,        0k buffers
+		Swap:        0k total,        0k used,        0k free,   175328k cached
+		
+		  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAND          
+		 1108 root     -16   0     0    0    0 R   95  0.0  29:08.91 2 kpep             
+		 1623 root     -16   0     0    0    0 S   65  0.0  34:59.12 1 satdata          
+		 1096 root     -16   0     0    0    0 S   57  0.0  26:15.79 3 lanTx            
+		 1600 root      20   0  145m  19m  18m S   14  4.5  27:06.28 3 uplink           
+		 1599 root      20   0  146m 5384 3996 S   14  1.2  15:20.58 0 downlink         
+		    3 root      20   0     0    0    0 R    8  0.0   1:42.06 0 ksoftirqd/0      
+
+		./was_iperf3 -c 172.25.101.2 -i10 -b50M -t300 -p15101
+		Connecting to host 172.25.101.2, port 15101
+		[  4] local 192.168.158.151 port 58679 connected to 172.25.101.2 port 15101
+		[ ID] Interval           Transfer     Bandwidth       Retr  Cwnd
+		[  4]   0.00-10.00  sec  59.1 MBytes  49.6 Mbits/sec  960   40.8 KBytes       
+		- - - - - - - - - - - - - - - - - - - - - - - - -
+		[ ID] Interval           Transfer     Bandwidth       Retr
+		[  4]   0.00-300.00 sec  1.75 GBytes  50.0 Mbits/sec  3444             sender
+		[  4]   0.00-300.00 sec  1.75 GBytes  50.0 Mbits/sec                  receiver
+		
+		Total PEPPkts 18745405/300=62484
+
+===============================================================================
+
+TCP RET MSS 100 [SMALL SIZE]
+    Date : 6/10/18
+
+    VSAT CFG:
+        MSS 100 bytes
+        MUX disabled 
+        RoHc enabled
+        DPP Firmware 0x0120A308
+        UPP Firmware 0x06051754
+            inrouteCfUPPDefaultTraceOption=0x1
+
+        W2l Buf limit 34836 
+        HASH size set to 32K
+        W2L Memory limit set to 60
+        ACK delay 100ms [VSAT] 200ms [IPGW]
+        MAX L2W set to 95%
+
+    RESULT:
+    
+        20500 pps [16.5Mbps]
+        WLSB 128
+        67% KPEP; 58% SI; WANTX 31%; ->  15,8M [19.8K]
+        ackdelay set to 210ms 
+
+
+    SUPPORTING DATA:
+
+		top - 01:23:33 up  8:09,  1 user,  load average: 1.51, 0.83, 0.76
+		Tasks: 104 total,   2 running, 102 sleeping,   0 stopped,   0 zombie
+		Cpu(s):  3.1%us, 31.8%sy,  0.0%ni, 54.7%id,  0.0%wa,  0.0%hi, 10.3%si,  0.0%st
+		Mem:    448952k total,   296892k used,   152060k free,        0k buffers
+		Swap:        0k total,        0k used,        0k free,   175740k cached
+		
+		  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAND          
+		 1108 root     -16   0     0    0    0 S   66  0.0  34:33.41 2 kpep             
+		 1109 root     -16   0     0    0    0 S   34  0.0   9:29.25 3 wanTx            
+		 1096 root     -16   0     0    0    0 S   19  0.0  28:58.61 3 lanTx            
+		 1600 root      20   0  145m  19m  18m S   14  4.5  28:47.82 3 uplink           
+		 1599 root      20   0  146m 5384 3996 S    9  1.2  16:22.86 1 downlink         
+		    3 root      20   0     0    0    0 S    8  0.0   2:13.82 0 ksoftirqd/0      
+		   10 root      20   0     0    0    0 S    3  0.0   1:56.27 0 rcuc/0           
+		
+		top - 01:24:20 up  8:10,  1 user,  load average: 1.68, 1.00, 0.82
+		Tasks: 110 total,   2 running, 108 sleeping,   0 stopped,   0 zombie
+		Cpu0  :  0.0%us,  2.6%sy,  0.0%ni, 57.2%id,  0.0%wa,  0.0%hi, 40.1%si,  0.0%st
+		Cpu1  :  0.0%us,  1.3%sy,  0.0%ni, 98.7%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu2  :  0.0%us, 65.8%sy,  0.0%ni, 34.2%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu3  :  9.5%us, 57.9%sy,  0.0%ni, 32.6%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Mem:    448952k total,   297376k used,   151576k free,        0k buffers
+		Swap:        0k total,        0k used,        0k free,   175944k cached
+		
+		  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAND          
+		 1108 root     -16   0     0    0    0 S   66  0.0  35:02.21 2 kpep             
+		 1109 root     -16   0     0    0    0 S   34  0.0   9:43.89 3 wanTx            
+		 1096 root     -16   0     0    0    0 S   19  0.0  29:07.10 3 lanTx            
+		 1600 root      20   0  145m  19m  18m S   14  4.5  28:54.41 3 uplink           
+		    3 root      20   0     0    0    0 S    8  0.0   2:17.26 0 ksoftirqd/0      
+		 1599 root      20   0  146m 5384 3996 S    8  1.2  16:26.94 1 downlink         
+		   10 root      20   0     0    0    0 S    2  0.0   1:57.50 0 rcuc/0           
+
+		./iperf3 -c 192.168.14.201 -i10 -t300 -b17M
+		iperf_parse_arguments:672
+		Connecting to host 192.168.14.201, port 5201
+		[  4] local 172.25.101.2 port 45582 connected to 192.168.14.201 port 5201
+		[ ID] Interval           Transfer     Bandwidth       Retr  Cwnd
+		[  4]   0.00-10.00  sec  17.5 MBytes  14.7 Mbits/sec    0   48.0 KBytes       
+		- - - - - - - - - - - - - - - - - - - - - - - - -
+		[ ID] Interval           Transfer     Bandwidth       Retr
+		[  4]   0.00-300.00 sec   589 MBytes  16.5 Mbits/sec    0             sender
+		[  4]   0.00-300.00 sec   588 MBytes  16.5 Mbits/sec                  receiver
+		
+		6173257/300 = 20577
+
+===============================================================================
+
+TCP SIMUL  MSS 100 [SMALL SIZE]
+    Date : 8/28/17
+
+    IPGW CFG:
+        MSS 100 bytes [MTU 160] ; 
+        MUX disabled 
+        ASSOC BW Set to 50 , CIR set to 500 Mbps
+        MAX SAT throughput set to 25Mbps
+
+    VSAT CFG:
+        MSS 100 bytes
+        MUX disabled 
+        RoHc enabled
+        DPP Firmware A306 [Liming's enhancements]
+        W2l Buf limit 34836 
+        HASH size set to 32K
+        W2L Memory limit set to 60
+        ACK delay 500ms
+        MODCOD 92 [64APSK 3/4]
+        sgmac_tx_int_tickle_freq set to 7 [7 pkts for 1 Tx interrupt]
+        1M udp stream is sent on Uplink to create stream BW for acks
+        DPP Firmware 0x0120A308
+        UPP Firmware 0x06051754
+            inrouteCfUPPDefaultTraceOption=0x1
+
+
+    RESULT:
+
+    Down : 27500 [23Mbps]
+    UP   : 12500 [11Mbps]
+
+    SUPPORTING DATA:
+
+		top - 01:40:06 up  8:26,  1 user,  load average: 2.95, 1.80, 1.34
+		Tasks: 104 total,   6 running,  98 sleeping,   0 stopped,   0 zombie
+		Cpu(s):  3.3%us, 49.7%sy,  0.0%ni, 34.0%id,  0.0%wa,  0.0%hi, 12.9%si,  0.0%st
+		Mem:    448952k total,   294284k used,   154668k free,        0k buffers
+		Swap:        0k total,        0k used,        0k free,   177276k cached
+		
+		  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAND          
+		 1108 root     -16   0     0    0    0 R   95  0.0  40:24.50 2 kpep             
+		 1623 root     -16   0     0    0    0 R   39  0.0  38:49.56 1 satdata          
+		 1096 root     -16   0     0    0    0 R   39  0.0  31:02.57 3 lanTx            
+		 1109 root     -16   0     0    0    0 S   32  0.0  11:53.32 3 wanTx            
+		 1600 root      20   0  145m  19m  18m S   15  4.5  30:19.28 3 uplink           
+		 1599 root      20   0  146m 5384 3996 S   12  1.2  17:20.07 0 downlink         
+		
+		top - 01:39:08 up  8:25,  1 user,  load average: 1.12, 1.32, 1.17
+		Tasks: 104 total,   7 running,  97 sleeping,   0 stopped,   0 zombie
+		Cpu0  :  1.3%us,  4.6%sy,  0.0%ni, 40.1%id,  0.0%wa,  0.0%hi, 54.1%si,  0.0%st
+		Cpu1  :  0.7%us, 33.9%sy,  0.0%ni, 65.5%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu2  :  0.0%us, 97.1%sy,  0.0%ni,  2.9%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu3  :  9.4%us, 70.0%sy,  0.0%ni, 20.5%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Mem:    448952k total,   289624k used,   159328k free,        0k buffers
+		Swap:        0k total,        0k used,        0k free,   176880k cached
+		
+		  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAND          
+		 1108 root     -16   0     0    0    0 R   96  0.0  39:28.32 2 kpep             
+		 1096 root     -16   0     0    0    0 R   39  0.0  30:39.56 3 lanTx            
+		 1623 root     -16   0     0    0    0 S   38  0.0  38:26.87 1 satdata          
+		 1109 root     -16   0     0    0    0 S   31  0.0  11:35.11 3 wanTx            
+		 1600 root      20   0  145m  19m  18m S   15  4.5  30:10.71 3 uplink           
+		 1599 root      20   0  146m 5384 3996 S   12  1.2  17:13.45 0 downlink         
+		    3 root      20   0     0    0    0 R    9  0.0   2:45.15 0 ksoftirqd/0      
+
+		./iperf3 -s -i10 -p15102
+		-----------------------------------------------------------
+		Server listening on 15102
+		-----------------------------------------------------------
+		Accepted connection from 172.25.101.2, port 46884
+		[  5] local 192.168.14.201 port 15102 connected to 172.25.101.2 port 46885
+		[ ID] Interval           Transfer     Bandwidth
+		[  5]   0.00-10.00  sec  13.0 MBytes  10.9 Mbits/sec                  
+		- - - - - - - - - - - - - - - - - - - - - - - - -
+		[ ID] Interval           Transfer     Bandwidth
+		[  5]   0.00-300.51 sec  0.00 Bytes  0.00 bits/sec                  sender
+		[  5]   0.00-300.51 sec   393 MBytes  11.0 Mbits/sec                  receiver
+		
+		./iperf3 -s -i10 -p15101
+		iperf_parse_arguments:672
+		-----------------------------------------------------------
+		Server listening on 15101
+		-----------------------------------------------------------
+		Accepted connection from 192.168.158.151, port 32837
+		[  5] local 172.25.101.2 port 15101 connected to 192.168.158.151 port 32838
+		[ ID] Interval           Transfer     Bandwidth
+		[  5]   0.00-10.00  sec  27.0 MBytes  22.7 Mbits/sec                  
+		- - - - - - - - - - - - - - - - - - - - - - - - -
+		[ ID] Interval           Transfer     Bandwidth
+		[  5]   0.00-300.16 sec  0.00 Bytes  0.00 bits/sec                  sender
+		[  5]   0.00-300.16 sec   822 MBytes  23.0 Mbits/sec                  receiver
+		
+		UP : 6428113/300 = 21427
+		DN : 12749233/300 = 42497
+
+===============================================================================
+
+TCP FWD MSS 1440 [FULL SIZE]
+    Date : 6/10/18
+
+    IPGW CFG:
+        MSS 1440 bytes [MTU 1500] ; 
+        MUX disabled 
+        ASSOC BW Set to 50 , CIR set to 500 Mbps
+        MAX SAT throughput set to 25Mbps
+
+    VSAT CFG:
+        MSS 1440 bytes
+        MUX disabled 
+        RoHc enabled
+        DPP Firmware A306 [Liming's enhancements]
+        W2l Buf limit 34836 
+        HASH size set to 32K
+        W2L Memory limit set to 60
+        ACK delay 100ms  ***
+        MODCOD 92 [64APSK 3/4]
+        DPP Firmware 0x0120A308
+        UPP Firmware 0x06051754
+            inrouteCfUPPDefaultTraceOption=0x1
+
+    RESULT:
+        280 Mbps 
+        WLSB 128 - 72% gain [58 bytes reduced to 16 bytes]
+
+    SUPPORTING DATA:
+
+		top - 01:55:48 up  8:42,  1 user,  load average: 3.48, 1.89, 1.61
+		Tasks: 104 total,   5 running,  99 sleeping,   0 stopped,   0 zombie
+		Cpu(s):  6.0%us, 55.8%sy,  0.0%ni, 26.6%id,  0.0%wa,  0.0%hi, 11.6%si,  0.0%st
+		Mem:    448952k total,   287416k used,   161536k free,        0k buffers
+		Swap:        0k total,        0k used,        0k free,   175752k cached
+		
+		  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAND          
+		 1108 root     -16   0     0    0    0 R   88  0.0  46:26.12 2 kpep             
+		 1623 root     -16   0     0    0    0 R   71  0.0  42:07.66 1 satdata          
+		 1096 root     -16   0     0    0    0 S   60  0.0  34:06.69 3 lanTx            
+		 1600 root      20   0  145m  19m  18m S   19  4.5  31:47.69 3 uplink           
+		 1599 root      20   0  146m 5384 3996 S   15  1.2  18:22.76 0 downlink         
+		    3 root      20   0     0    0    0 R    3  0.0   3:14.39 0 ksoftirqd/0      
+		
+		top - 01:54:37 up  8:40,  1 user,  load average: 1.16, 1.15, 1.37
+		Tasks: 104 total,   2 running, 102 sleeping,   0 stopped,   0 zombie
+		Cpu0  :  2.0%us,  6.5%sy,  0.0%ni, 42.0%id,  0.0%wa,  0.0%hi, 49.5%si,  0.0%st
+		Cpu1  :  0.0%us, 72.6%sy,  0.0%ni, 27.4%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu2  :  0.0%us, 88.6%sy,  0.0%ni, 11.4%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu3  : 10.1%us, 71.7%sy,  0.0%ni, 18.2%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Mem:    448952k total,   285768k used,   163184k free,        0k buffers
+		Swap:        0k total,        0k used,        0k free,   175268k cached
+		
+		  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAND          
+		 1108 root     -16   0     0    0    0 S   89  0.0  45:23.18 2 kpep             
+		 1623 root     -16   0     0    0    0 R   70  0.0  41:17.12 1 satdata          
+		 1096 root     -16   0     0    0    0 S   61  0.0  33:23.41 3 lanTx            
+		 1600 root      20   0  145m  19m  18m S   18  4.5  31:34.73 3 uplink           
+		 1599 root      20   0  146m 5384 3996 S   15  1.2  18:11.63 0 downlink         
+		    3 root      20   0     0    0    0 S    3  0.0   3:12.36 0 ksoftirqd/0      
+
+		./iperf3 -s -i10 -p15101
+		iperf_parse_arguments:672
+		-----------------------------------------------------------
+		Server listening on 15101
+		-----------------------------------------------------------
+		Accepted connection from 192.168.158.151, port 33766
+		[  5] local 172.25.101.2 port 15101 connected to 192.168.158.151 port 33767
+		[ ID] Interval           Transfer     Bandwidth
+		[  5]   0.00-10.00  sec   331 MBytes   277 Mbits/sec                  
+		- - - - - - - - - - - - - - - - - - - - - - - - -
+		[ ID] Interval           Transfer     Bandwidth
+		[  5]   0.00-300.04 sec  0.00 Bytes  0.00 bits/sec                  sender
+		[  5]   0.00-300.04 sec  9.78 GBytes   280 Mbits/sec                  receiver
+
+===============================================================================
+
+TCP RET [inroute] 
+    Date: 6/10/18
+    1440 bytes ; MUX disabled @ IPGW & VSAT
+    inroute max bw set to 30 Mbps
+    Achieved 19.3 with no issues.
+    Date : 7/05/17 -> same as before
+
+    IPGW CFG:
+        MSS 1440 bytes [MTU 1500] ; 
+        MUX disabled 
+        ASSOC BW Set to 50 , CIR set to 500 Mbps
+        MAX SAT throughput set to 25Mbps
+
+    VSAT CFG:
+        MSS 1440 bytes
+        MUX disabled 
+        RoHc enabled
+        DPP Firmware A306 [Liming's enhancements]
+        W2l Buf limit 34836 
+        HASH size set to 32K
+        W2L Memory limit set to 60
+        ACK delay 100ms  ***
+        MODCOD 92 [64APSK 3/4]
+        DPP Firmware 0x0120A308
+        UPP Firmware 0x06051754
+            inrouteCfUPPDefaultTraceOption=0x1
+    RESULT:
+        19i.3 Mbps 
+        WLSB 128 - 72% gain [58 bytes reduced to 16 bytes]
+
+    SUPPORTING DATA:
+
+		top - 02:05:18 up  8:51,  1 user,  load average: 0.19, 1.00, 1.46
+		Tasks: 104 total,   1 running, 103 sleeping,   0 stopped,   0 zombie
+		Cpu(s):  1.9%us,  6.6%sy,  0.0%ni, 89.7%id,  0.0%wa,  0.0%hi,  1.9%si,  0.0%st
+		Mem:    448952k total,   302084k used,   146868k free,        0k buffers
+		Swap:        0k total,        0k used,        0k free,   175332k cached
+		
+		  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAND          
+		 1600 root      20   0  145m  19m  18m S   13  4.5  32:47.21 3 uplink           
+		 1108 root     -16   0     0    0    0 S    8  0.0  49:37.69 2 kpep             
+		 1109 root     -16   0     0    0    0 S    6  0.0  13:11.52 3 wanTx            
+		 1599 root      20   0  146m 5384 3996 S    4  1.2  19:04.93 1 downlink         
+		 1096 root     -16   0     0    0    0 S    2  0.0  36:16.04 3 lanTx            
+		
+		top - 02:04:41 up  8:50,  1 user,  load average: 0.23, 1.11, 1.51
+		Tasks: 104 total,   2 running, 102 sleeping,   0 stopped,   0 zombie
+		Cpu0  :  1.0%us,  2.0%sy,  0.0%ni, 90.1%id,  0.0%wa,  0.0%hi,  6.9%si,  0.0%st
+		Cpu1  :  0.7%us,  3.0%sy,  0.0%ni, 96.4%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu2  :  0.0%us, 15.5%sy,  0.0%ni, 84.5%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu3  : 12.5%us,  6.6%sy,  0.0%ni, 80.5%id,  0.0%wa,  0.0%hi,  0.3%si,  0.0%st
+		Mem:    448952k total,   294120k used,   154832k free,        0k buffers
+		Swap:        0k total,        0k used,        0k free,   175124k cached
+		
+		  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAND          
+		 1600 root      20   0  145m  19m  18m S   13  4.5  32:42.27 3 uplink           
+		 1108 root     -16   0     0    0    0 S    8  0.0  49:34.73 2 kpep             
+		 1109 root     -16   0     0    0    0 S    6  0.0  13:09.24 3 wanTx            
+		 1599 root      20   0  146m 5384 3996 S    3  1.2  19:03.68 1 downlink         
+		 1096 root     -16   0     0    0    0 S    2  0.0  36:15.32 3 lanTx            
+		   10 root      20   0     0    0    0 S    1  0.0   2:21.55 0 rcuc/0           
+		 1625 root      20   0  511m  41m  40m S    1  9.5   0:14.51 0 diagmgr          
+
+		./was_iperf3 -s -i10 -p15102
+		-----------------------------------------------------------
+		Server listening on 15102
+		-----------------------------------------------------------
+		Accepted connection from 172.25.101.2, port 51516
+		[  5] local 192.168.158.151 port 15102 connected to 172.25.101.2 port 51517
+		[ ID] Interval           Transfer     Bandwidth
+		[  5]   0.00-10.00  sec  22.2 MBytes  18.6 Mbits/sec                  
+		- - - - - - - - - - - - - - - - - - - - - - - - -
+		[ ID] Interval           Transfer     Bandwidth       Retr
+		[  4]   0.00-300.00 sec   691 MBytes  19.3 Mbits/sec    0             sender
+		[  4]   0.00-300.00 sec   689 MBytes  19.3 Mbits/sec                  receiver
+
+
+===============================================================================
+TCP SIMUL  MSS 1440 [FULL SIZE]
+    Date : 6.10.18
+
+    IPGW CFG:
+        MSS 1440 bytes [MTU 1500] ; 
+        MUX disabled 
+        ASSOC BW Set to 50 , CIR set to 500 Mbps
+        MAX SAT throughput set to 25Mbps
+
+    VSAT CFG:
+        MSS 1440 bytes
+        MUX disabled 
+        RoHc enabled
+        DPP Firmware A306 [Liming's enhancements]
+        W2l Buf limit 34836 
+        HASH size set to 32K
+        W2L Memory limit set to 60
+        ACK delay 100ms [VSAT]; 200ms [IPGW]
+        MODCOD 92 [64APSK 3/4]
+        DPP Firmware 0x0120A308
+        UPP Firmware 0x06051754
+            inrouteCfUPPDefaultTraceOption=0x1
+    RESULT:
+
+    RESULT:
+        225M [down], 19M[UP]
+
+    SUPPORTING DATA:
+
+		top - 02:25:19 up  9:11,  1 user,  load average: 1.68, 2.14, 1.64
+		Tasks: 104 total,   4 running, 100 sleeping,   0 stopped,   0 zombie
+		Cpu(s):  2.1%us, 53.3%sy,  0.0%ni, 33.6%id,  0.0%wa,  0.0%hi, 11.0%si,  0.0%st
+		Mem:    448952k total,   288584k used,   160368k free,        0k buffers
+		Swap:        0k total,        0k used,        0k free,   176244k cached
+		
+		  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAND          
+		 1108 root     -16   0     0    0    0 S   85  0.0  54:31.90 2 kpep             
+		 1623 root     -16   0     0    0    0 S   58  0.0  47:36.98 1 satdata          
+		 1096 root     -16   0     0    0    0 R   48  0.0  38:56.29 3 lanTx            
+		 1600 root      20   0  145m  19m  18m S   16  4.5  35:06.54 3 uplink           
+		 1599 root      20   0  146m 5384 3996 S   12  1.2  20:10.58 0 downlink         
+		 1109 root     -16   0     0    0    0 S   10  0.0  14:04.29 3 wanTx            
+		    3 root      20   0     0    0    0 R    3  0.0   3:29.16 0 ksoftirqd/0      
+		
+		top - 02:26:05 up  9:12,  1 user,  load average: 2.48, 2.31, 1.72
+		Tasks: 104 total,   8 running,  96 sleeping,   0 stopped,   0 zombie
+		Cpu0  :  3.3%us,  4.9%sy,  0.0%ni, 56.4%id,  0.0%wa,  0.0%hi, 35.4%si,  0.0%st
+		Cpu1  :  0.0%us, 55.1%sy,  0.0%ni, 44.9%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu2  :  0.0%us, 84.9%sy,  0.0%ni, 15.1%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu3  : 16.7%us, 63.3%sy,  0.0%ni, 20.0%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Mem:    448952k total,   289368k used,   159584k free,        0k buffers
+		Swap:        0k total,        0k used,        0k free,   176540k cached
+		
+		  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAND          
+		 1108 root     -16   0     0    0    0 R   86  0.0  55:11.57 2 kpep             
+		 1623 root     -16   0     0    0    0 R   58  0.0  48:03.66 1 satdata          
+		 1096 root     -16   0     0    0    0 R   48  0.0  39:18.47 3 lanTx            
+		 1600 root      20   0  145m  19m  18m S   16  4.5  35:13.95 3 uplink           
+		 1599 root      20   0  146m 5384 3996 S   12  1.2  20:16.31 0 downlink         
+		 1109 root     -16   0     0    0    0 R   10  0.0  14:08.84 3 wanTx            
+		    3 root      20   0     0    0    0 R    3  0.0   3:30.42 0 ksoftirqd/0      
+
+		-----------------------------------------------------------
+		Server listening on 15102
+		-----------------------------------------------------------
+		Accepted connection from 172.25.101.2, port 51528
+		[  5] local 192.168.158.151 port 15102 connected to 172.25.101.2 port 51529
+		[ ID] Interval           Transfer     Bandwidth
+		[  5]   0.00-10.00  sec  22.0 MBytes  18.4 Mbits/sec                  
+		- - - - - - - - - - - - - - - - - - - - - - - - -
+		[ ID] Interval           Transfer     Bandwidth
+		[  5]   0.00-300.23 sec  0.00 Bytes  0.00 bits/sec                  sender
+		[  5]   0.00-300.23 sec   679 MBytes  19.0 Mbits/sec                  receiver
+		
+		-----------------------------------------------------------
+		Server listening on 15101
+		-----------------------------------------------------------
+		Accepted connection from 192.168.158.151, port 35613
+		[  5] local 172.25.101.2 port 15101 connected to 192.168.158.151 port 35614
+		[ ID] Interval           Transfer     Bandwidth
+		[  5]   0.00-10.00  sec   264 MBytes   221 Mbits/sec                  
+		- - - - - - - - - - - - - - - - - - - - - - - - -
+		[ ID] Interval           Transfer     Bandwidth
+		[  5]   0.00-300.10 sec  0.00 Bytes  0.00 bits/sec                  sender
+		[  5]   0.00-300.10 sec  7.86 GBytes   225 Mbits/sec                  receiver
+
+===============================================================================
+
+MULTICAST 
+    Date : 8/28/17
+
+    MULTICAST IPGW CFG:
+        MSS 1440 bytes [MTU 1500] ; 
+        MULTICAST CIR 800
+
+    VSAT CFG:
+        MSS 1440 bytes
+        DPP Firmware A306 [Liming's enhancements]
+        MODCOD 92 [64APSK 3/4]
+        NO RoHC
+
+    RESULT:
+        430 Mbps   
+        DPP Slips happen [480 : SMA Disable count]
+        No SATDATA Drops
+        sent 425Mbps : 
+        22216251 rcvd in downlink and sent to LAN.
+        22222223 sent from GW drops may be due to SMA error
+
+    SUPPORTING DATA:
+
+		top - 00:06:37 up  8:30,  1 user,  load average: 4.67, 3.74, 1.99
+		Tasks:  97 total,   8 running,  89 sleeping,   0 stopped,   0 zombie
+		Cpu(s):  2.6%us, 46.2%sy,  0.0%ni, 42.5%id,  0.0%wa,  0.0%hi,  8.6%si,  0.0%st
+		Mem:    449896k total,   242012k used,   207884k free,        0k buffers
+		Swap:        0k total,        0k used,        0k free,   141040k cached
+		
+		  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAND          
+		 1250 root     -16   0     0    0    0 R   92  0.0  81:54.43 1 satdata          
+		  774 root     -16   0     0    0    0 R   68  0.0  65:10.58 3 lanTx            
+		 1238 root      20   0  108m  17m  16m S   28  3.9  41:35.29 3 uplink           
+		 1237 root      20   0  108m 4924 3668 S    8  1.1  39:50.25 0 downlink         
+		    3 root      20   0     0    0    0 R    3  0.0   8:37.63 0 ksoftirqd/0      
+		
+		
+		top - 00:07:13 up  8:30,  1 user,  load average: 4.64, 3.83, 2.08
+		Tasks:  99 total,   8 running,  91 sleeping,   0 stopped,   0 zombie
+		Cpu0  :  2.0%us,  2.6%sy,  0.0%ni, 67.7%id,  0.0%wa,  0.0%hi, 27.7%si,  0.0%st
+		Cpu1  :  0.0%us, 91.1%sy,  0.0%ni,  8.9%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu2  :  0.0%us,  3.3%sy,  0.0%ni, 96.7%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu3  :  5.3%us, 88.1%sy,  0.0%ni,  6.6%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Mem:    449896k total,   241900k used,   207996k free,        0k buffers
+		Swap:        0k total,        0k used,        0k free,   141140k cached
+		
+		  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAND          
+		 1250 root     -16   0     0    0    0 R   91  0.0  82:27.37 1 satdata          
+		  774 root     -16   0     0    0    0 R   68  0.0  65:34.18 3 lanTx            
+		 1238 root      20   0  108m  17m  16m R   26  3.9  41:45.85 3 uplink           
+		 1237 root      20   0  108m 4924 3668 S    8  1.1  39:53.48 2 downlink         
+
+
+		iperf -B192.168.158.11 -c239.1.1.1 -i10 -t600 -T 32 -u -b425M -w4M
+		------------------------------------------------------------
+			Client connecting to 239.1.1.1, UDP port 5001
+			Binding to local address 192.168.158.11
+			Sending 1470 byte datagrams
+			Setting multicast TTL to 32
+			UDP buffer size: 8.00 MByte (WARNING: requested 4.00 MByte)
+			------------------------------------------------------------
+			[  3] local 192.168.158.11 port 5001 connected with 239.1.1.1 port 5001
+			[  3]  0.0-10.0 sec    519 MBytes    436 Mbits/sec
+			[  3]  0.0-600.0 sec  30.4 GBytes    436 Mbits/sec
+			[  3] Sent 22222224 datagrams
+		
+		iperf -i1 -s -B239.1.1.1 -u -w4M
+		    [  3]  0.0-600.0 sec  30.4 GBytes   435 Mbits/sec   0.513 ms 6045/22222223 (0.027%)
+    		[  3]  0.0-600.0 sec  1 datagrams received out-of-order
+
+===============================================================================
+
+MULTICAST with 100/10 TCP DOWN/UP
+    Date : 8/30/17
+    MULTICAST IPGW CFG:
+        MSS 1440 bytes [MTU 1500] ; 
+        MULTICAST CIR 800
+
+    VSAT CFG:
+        MSS 1440 bytes
+        DPP Firmware A306 [Liming's enhancements]
+        MODCOD 92 [64APSK 3/4]
+        NO RoHC
+
+    RESULT:
+        240Mbps [100/10 TCP]   190 before the change
+        Need to turn on Label reuse : other wise it is unstable
+        DPP drops happen otherwise.
+
+    SUPPORTING DATA:
+
+		top - 00:57:16 up 9 min,  1 user,  load average: 4.65, 3.01, 1.37
+		Tasks:  97 total,   4 running,  93 sleeping,   0 stopped,   0 zombie
+		Cpu(s):  2.7%us, 51.9%sy,  0.0%ni, 32.8%id,  0.0%wa,  0.0%hi, 12.6%si,  0.0%st
+		Mem:    449896k total,   222952k used,   226944k free,        0k buffers
+		Swap:        0k total,        0k used,        0k free,   135464k cached
+		
+		  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAND          
+		 1243 root     -16   0     0    0    0 S   80  0.0   4:52.65 1 satdata          
+		  775 root     -16   0     0    0    0 S   63  0.0   3:45.74 3 lanTx            
+		  787 root     -16   0     0    0    0 S   42  0.0   2:39.75 2 kpep             
+		 1232 root      20   0  108m  17m  16m S   25  3.9   1:51.89 3 uplink           
+		 1231 root      20   0  108m 4900 3656 S   15  1.1   1:01.13 2 downlink         
+		    3 root      20   0     0    0    0 R    7  0.0   0:25.53 0 ksoftirqd/0      
+		  788 root     -16   0     0    0    0 S    5  0.0   0:21.23 3 wanTx            
+
+		top - 00:58:22 up 10 min,  1 user,  load average: 4.38, 3.26, 1.57
+		Tasks:  97 total,   5 running,  92 sleeping,   0 stopped,   0 zombie
+		Cpu0  :  3.0%us,  2.6%sy,  0.0%ni, 43.0%id,  0.0%wa,  0.0%hi, 51.5%si,  0.0%st
+		Cpu1  :  0.0%us, 82.0%sy,  0.0%ni, 18.0%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu2  :  1.3%us, 38.0%sy,  0.0%ni, 60.7%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu3  : 10.8%us, 83.9%sy,  0.0%ni,  4.9%id,  0.0%wa,  0.0%hi,  0.3%si,  0.0%st
+		Mem:    449896k total,   224084k used,   225812k free,        0k buffers
+		Swap:        0k total,        0k used,        0k free,   135760k cached
+		
+		  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAND          
+		 1243 root     -16   0     0    0    0 R   80  0.0   5:44.59 1 satdata          
+		  775 root     -16   0     0    0    0 R   62  0.0   4:25.55 3 lanTx            
+		  787 root     -16   0     0    0    0 S   41  0.0   3:06.64 2 kpep             
+		 1232 root      20   0  108m  17m  16m S   26  3.9   2:09.56 3 uplink           
+		 1231 root      20   0  108m 4900 3656 S   14  1.1   1:10.44 0 downlink         
+		    3 root      20   0     0    0    0 R    7  0.0   0:29.99 0 ksoftirqd/0      
+		  788 root     -16   0     0    0    0 S    5  0.0   0:24.44 3 wanTx            
+		
+		
+		iperf -B192.168.158.11 -c239.1.1.1 -i10 -t600 -T 32 -u -b240M -w4M
+		------------------------------------------------------------
+		    Client connecting to 239.1.1.1, UDP port 5001
+    		Binding to local address 192.168.158.11
+    		Sending 1470 byte datagrams
+    		Setting multicast TTL to 32
+    		UDP buffer size: 8.00 MByte (WARNING: requested 4.00 MByte)
+    		------------------------------------------------------------
+    		[  3] local 192.168.158.11 port 5001 connected with 239.1.1.1 port 5001
+    		[  3]  0.0-10.0 sec    286 MBytes    240 Mbits/sec
+    		[  3]  0.0-600.0 sec  16.8 GBytes    240 Mbits/sec
+    		[  3] Sent 12244899 datagrams
+		
+		All multicast packets received.
+
+
+===============================================================================
+
+MULTICAST with 25/5 TCP DOWN/UP
+    Date : 8/30/17
+    MULTICAST IPGW CFG:
+        MSS 1440 bytes [MTU 1500] ; 
+        MULTICAST CIR 800
+
+    VSAT CFG:
+        MSS 1440 bytes
+        DPP Firmware A306 [Liming's enhancements]
+        MODCOD 92 [64APSK 3/4]
+        NO RoHC
+
+    RESULT:
+        350Mbps [25/5 TCP] - 300 before the change
+        Need to turn on Label reuse : other wise it is unstable
+        DPP drops happen otherwise.
+
+    SUPPORTING DATA:
+
+		top - 01:10:21 up 22 min,  1 user,  load average: 4.39, 3.05, 2.12
+		Tasks:  97 total,   5 running,  92 sleeping,   0 stopped,   0 zombie
+		Cpu0  :  3.3%us,  3.9%sy,  0.0%ni, 52.6%id,  0.0%wa,  0.0%hi, 40.1%si,  0.0%st
+		Cpu1  :  0.0%us, 84.2%sy,  0.0%ni, 15.8%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu2  :  0.7%us, 11.8%sy,  0.0%ni, 87.5%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu3  : 11.2%us, 82.9%sy,  0.0%ni,  5.9%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Mem:    449896k total,   227372k used,   222524k free,        0k buffers
+		Swap:        0k total,        0k used,        0k free,   138680k cached
+		
+		  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAND          
+		 1243 root     -16   0     0    0    0 R   83  0.0  11:29.63 1 satdata          
+		  775 root     -16   0     0    0    0 S   63  0.0   8:49.00 3 lanTx            
+		 1232 root      20   0  108m  17m  16m S   29  3.9   4:25.04 3 uplink           
+		  787 root     -16   0     0    0    0 S   14  0.0   4:43.00 2 kpep             
+		 1231 root      20   0  108m 4920 3668 S   11  1.1   2:11.35 0 downlink         
+		    3 root      20   0     0    0    0 S    5  0.0   0:53.37 0 ksoftirqd/0      
+		  788 root     -16   0     0    0    0 R    2  0.0   0:34.80 3 wanTx            
+		
+		top - 01:11:08 up 23 min,  1 user,  load average: 3.63, 3.04, 2.16
+		Tasks:  97 total,   6 running,  91 sleeping,   0 stopped,   0 zombie
+		Cpu0  :  2.0%us,  2.3%sy,  0.0%ni, 47.5%id,  0.0%wa,  0.0%hi, 48.2%si,  0.0%st
+		Cpu1  :  0.0%us, 81.8%sy,  0.0%ni, 18.2%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu2  :  0.7%us, 11.2%sy,  0.0%ni, 88.1%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Cpu3  :  6.6%us, 87.1%sy,  0.0%ni,  6.3%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+		Mem:    449896k total,   227552k used,   222344k free,        0k buffers
+		Swap:        0k total,        0k used,        0k free,   138988k cached
+		
+		  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAND          
+		 1243 root     -16   0     0    0    0 R   83  0.0  12:08.27 1 satdata          
+		  775 root     -16   0     0    0    0 R   61  0.0   9:17.98 3 lanTx            
+		 1232 root      20   0  108m  17m  16m S   30  3.9   4:38.60 3 uplink           
+		  787 root     -16   0     0    0    0 S   13  0.0   4:49.27 2 kpep             
+		 1231 root      20   0  108m 4920 3668 S   11  1.1   2:16.63 2 downlink         
+		    3 root      20   0     0    0    0 S    5  0.0   0:55.85 0 ksoftirqd/0      
+		  788 root     -16   0     0    0    0 R    2  0.0   0:35.82 3 wanTx            
+
+
+		iperf -B192.168.158.11 -c239.1.1.1 -i10 -t600 -T 32 -u -b350M -w4M
+		------------------------------------------------------------
+		    Client connecting to 239.1.1.1, UDP port 5001
+    		Binding to local address 192.168.158.11
+    		Sending 1470 byte datagrams
+    		Setting multicast TTL to 32
+    		UDP buffer size: 8.00 MByte (WARNING: requested 4.00 MByte)
+    		------------------------------------------------------------
+    		[  3] local 192.168.158.11 port 5001 connected with 239.1.1.1 port 5001
+    		[  3]  0.0-10.0 sec    425 MBytes    356 Mbits/sec
+    		[  3] 10.0-20.0 sec    425 MBytes    356 Mbits/sec
+            [  3]  0.0-600.0 sec  24.9 GBytes   356 Mbits/sec   1.200 ms  385/18181820 (0.0021%)
+
+===============================================================================

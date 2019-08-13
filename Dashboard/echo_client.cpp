@@ -1,7 +1,7 @@
 /**
  * @file echo_client.cpp
- * @author your name (you@domain.com)
- * @brief 
+ * @author Andrew Durkiewicz
+ * @brief This program serves as a stats client. It creates a SQLite database and stores stats from the server into the database
  * @version 0.1
  * @date 2019-07-15
  * 
@@ -102,19 +102,8 @@ void SQL_CMD(std::string command);
 static int callback(void *data, int argc, char **argv, char **azColName);
 sqlite3 *db;
 char *zErrMsg = 0;
-
-/**
- * @brief SQLite table parameters
- * 
- */
 int day_counter, max_counter = 0;
 
-/**
- * @brief 
- * 
- * @param val 
- * @return unsigned long 
- */
 unsigned long convert(std::string val)
 {
     if (val != "A Default Value if not exists")
@@ -128,13 +117,12 @@ unsigned long convert(std::string val)
 }
 
 /**
- * @brief 
+ * @brief This callback provides a way to obtain results from SELECT statements. It has the following declaration
  * 
- * @param data 
- * @param argc 
- * @param argv 
- * @param azColName 
- * @return int 
+ * @param data Data provided in the 4th argument of sqlite3_exec()
+ * @param argc The number of columns in row
+ * @param argv An array of strings representing fields in the row
+ * @param azColName An array of strings representing column names
  */
 static int callback(void *data, int argc, char **argv, char **azColName)
 {
@@ -149,6 +137,7 @@ static int callback(void *data, int argc, char **argv, char **azColName)
     printf("\n");
     return 0;
 }
+
 /*---------------------------------------------------------------------
 Function: SQL_CMD(std::string command)
 Purpose: 
@@ -169,8 +158,8 @@ void SQL_CMD(std::string command)
  * It prints the message and then sends a copy of the message back to the server.
  * 
  * @param c  Client config with asio transport and TLS disabled
- * @param hdl Client connection handler 
- * @param msg 
+ * @param hdl A handle to uniquely identify a connection.
+ * @param msg Represents a buffer for a single WebSocket message.
  */
 void on_message(client *c, websocketpp::connection_hdl hdl, message_ptr msg)
 {
@@ -232,24 +221,24 @@ void on_message(client *c, websocketpp::connection_hdl hdl, message_ptr msg)
                     std::cout << "Unit not recognized" << std::endl;
                 }
             }
-            char buffer[800];
-            char SQL_thru[800];
+            std::string buffer;
+            std::string SQL_thru;
             int pass_number = 0;
             for (std::vector<intf_val_t>::const_iterator i = nodes.begin(); i != nodes.end(); ++i)
             {
                 if (pass_number > 0)
                 {
-                    sprintf(SQL_thru, "%s,%f", SQL_thru, (*i).thru);
+                    SQL_thru = SQL_thru + "," + boost::to_string((*i).thru);
                 }
                 else
                 {
-                    sprintf(SQL_thru, ",%f", (*i).thru);
+                    SQL_thru = "," +  boost::to_string((*i).thru);
                 }
                 pass_number++;
             }
 
-            sprintf(SQL_thru, "%s);", SQL_thru);
-            sprintf(buffer, "%s VALUES (%s%s", SQL_input_live.c_str(), time_prefix.c_str(), SQL_thru);
+            SQL_thru = SQL_thru + ");";
+            buffer = SQL_input_live + " VALUES (" + time_prefix + SQL_thru;
 
             SQL_CMD(buffer);
             day_counter++;
@@ -265,7 +254,7 @@ void on_message(client *c, websocketpp::connection_hdl hdl, message_ptr msg)
             if (max_counter == MAX)
             {
                 SQL_CMD(SQL_maxQuery);
-                SQL_CMD("Delete from day where Time < strftime('%Y-%m-%d %H:%M:%f', 'NOW','-14 days');");
+                SQL_CMD("Delete from max where Time < strftime('%Y-%m-%d %H:%M:%f', 'NOW','-14 days');");
                 max_counter = 0;
             }
             rc = sqlite3_close_v2(db);
@@ -274,16 +263,16 @@ void on_message(client *c, websocketpp::connection_hdl hdl, message_ptr msg)
 }
 
 /**
- * @brief 
+ * @brief On connection opening
  * 
- * @param c 
- * @param hdl 
+ * @param c Client config with asio transport and TLS disabled
+ * @param hdl handler A handle to uniquely identify a connection.
  */
 void on_open(client *c, websocketpp::connection_hdl hdl)
 {
     Json::Value configroot;
     Json::Reader configReader;
-    std::ifstream file("/vsat/apps/stats_config_old.json");
+    std::ifstream file("/vsat/apps/stats_config.json");
     bool out = configReader.parse(file, configroot, true);
     if (!out)
     {
@@ -335,8 +324,12 @@ void on_open(client *c, websocketpp::connection_hdl hdl)
     reader.parse(file_input, root);
     std::string output;
 
-    /*The first keys denote the format of data collection that the client needs to request. 
-         * The time row is the frequency of statistics that the server needs to send in milliseconds. */
+    /**
+     * @brief   The first key denote the format of data collection that the client needs to request. 
+                The time row is the frequency of statistics that the server needs to send in milliseconds.
+     * 
+     */ 
+
     output.append("rows=" + root["rows"].asString() + ":");
     output.append("style=" + root["style"].asString() + ":");
     output.append("time=" + root["time"].asString() + ":");
@@ -358,9 +351,7 @@ void on_open(client *c, websocketpp::connection_hdl hdl)
 }
 static void _igmpProcessHeartBeat()
 {
-    //TRACE_LOG(igmpLogId, LOG_INFO, " \n HeartBeat Message received, Updated shared memory for IGMP");
     setShmConfig(_shmIgmpIndex, SHM_GOOD);
-    //TRACE_LOG(igmpLogId, LOG_INFO, " \n End of _igmpProcessHeartBeat");
 }
 
 static int _initMq(void)
@@ -380,21 +371,18 @@ static int _initMq(void)
 
     if (_mqdesSelf == (mqd_t)-1)
     {
-        //TRACE_LOG(igmpLogId, LOG_ERR,"error mq_open");
         return ERROR;
     }
 
     status = mrSubscribe(WSC_APPL_ID, MR_INTERNAL, SHM_HEART_BEAT_MSGID);
     if (status != MR_RET_OK)
     {
-        //TRACE_LOG(igmpLogId, LOG_ERR,"error mr-subscribe failed for SHM_HEART_BEAT_MSGID \n");
         return ERROR;
     }
 
     status = mrSubscribe(WSC_APPL_ID, MR_INTERNAL, CFM_CONF_UPDATE_MSGID);
     if (status != MR_RET_OK)
     {
-        //TRACE_LOG(igmpLogId, LOG_ERR,"error mr-subscribe failed for CFM_CONF_UPDATE_MSGID \n");
          return ERROR;
     }
 
@@ -403,35 +391,14 @@ static int _initMq(void)
 
 static void _messageCheck(MrIpcMsg_t *rxMsg)
 {
-    //TRACE_LOG(igmpLogId, LOG_INFO, "Msg received at IGMP: %d\n", rxMsg->ipcHdr.msgType);
     switch (rxMsg->ipcHdr.msgType)
     {
-    case SHM_HEART_BEAT_MSGID:
-    {
-       // TRACE_LOG(igmpLogId, LOG_INFO, "SHM_HEART_BEAT_MSGID Msg received \n");
-        _igmpProcessHeartBeat();
-        break;
+        case SHM_HEART_BEAT_MSGID:
+            _igmpProcessHeartBeat();
+            break;
+        default:
+            break;
     }
-
-    // case CFM_CONF_UPDATE_MSGID:
-    // {
-    //    // TRACE_LOG(igmpLogId, LOG_INFO, "CFM_CONF_UPDATE_MSGID Msg received \n");
-    //     igmpLogId = (LOG_ERR > p_cfm->log_parms.applLogLevel[IGMP_APPL_ID]) ? LOG_ERR : p_cfm->log_parms.applLogLevel[IGMP_APPL_ID];
-
-    //     igmpRouterCfmCall();
-    //     igmpHostCfmCall();
-    //     break;
-    // }
-
-
-
-    default:
-    {
-       // TRACE_LOG(igmpLogId, LOG_PERM, "Invalid Msg received");
-        break;
-    }
-    }
-
     return;
 }
 
@@ -447,7 +414,6 @@ void * hb_thread(void *args)
     int fd_max = 0;
     fd_set read_fds;
 
-    //TRACE_LOG(igmpLogId, LOG_INFO, "IGMP _getMessage");
     while (TRUE)
     {
         FD_ZERO(&read_fds);
@@ -468,16 +434,12 @@ void * hb_thread(void *args)
 
         if (FD_ISSET(_mqdesSelf, &read_fds))
         {
-            //TRACE_LOG(igmpLogId, LOG_INFO, "FD_ISSET _mqdesSelf");
             if ((mq_receive(_mqdesSelf, (char *)rxMsg, MR_MAX_MTU, NULL) <= 0))
             {
-                // TRACE_LOG(igmpLogId, LOG_ERR, "\nIGMP Message queue read failure or interrupt received\n");
-                // TRACE_LOG(igmpLogId, LOG_ERR, "IGMP : _mqdesSelf : %d\n", _mqdesSelf);
-                // TRACE_LOG(igmpLogId, LOG_ERR, "\n Error number %d \n", errno);
+
             }
             else
             {
-              //  TRACE_LOG(igmpLogId, LOG_INFO, "Message received on IGMP Queue");
                 _messageCheck(rxMsg);
             }
         }
@@ -493,12 +455,11 @@ int main(int argc, char *argv[])
 
     std::string uri = "ws://127.0.0.1:9002";
 
-    input_file = "/vsat/apps/stats_config_old.json";
+    input_file = "/vsat/apps/stats_config.json";
     if (argv[1] != NULL)
     {
         _shmIgmpIndex = atoi(argv[1]);
         _procName = argv[0];
-        //TRACE_LOG(igmpLogId, LOG_PERM, "\n igmp SHM id is %d", _shmIgmpIndex);
         updateShmConfig();
     }
     else

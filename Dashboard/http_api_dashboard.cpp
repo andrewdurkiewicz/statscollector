@@ -15,19 +15,19 @@ Date: May 30, 2019
 #include <ctime>
 #include <tracelogger.h>
 
-using namespace std;
-using namespace Express;
-//export LD_LIBRARY_PATH=.
-//To Run:
-//  g++ http_api_dashboard.cpp -I. libSQLiteCpp.so libsqlite3.so -lpthread -ldl libSQLiteCpp.so -libjsoncpp.so ljsoncpp /home/user/jsoncpp/build-shared/libjsoncpp.so -o http_api_executable && ./http_api_executable 
 
-
-void getDashConfig(Request & req, Response & res)
+/**
+ * @brief Get the Dash Config object
+ * 
+ * @param req ExpressCpp Request
+ * @param res ExpressCpp Response
+ */
+void getDashConfig(Express::Request & req, Express::Response & res)
 {
 	Json::Value root;
 	Json::Reader reader;
-	std::ifstream file("/vsat/apps/stats_config_old.json");
-    	bool isparsed = reader.parse(file, root, true);
+	std::ifstream file("/vsat/apps/stats_config.json");
+	bool isparsed = reader.parse(file, root, true);
 	if(!isparsed)
 	{
 		Json::Value error_response;		
@@ -42,7 +42,17 @@ void getDashConfig(Request & req, Response & res)
 
 }
 
-bool findState(vector<string> & conditions, Request & req, Response & res)
+/*
+ * @brief This parses the URL query string into a vector string.
+ * 
+ * @param conditions String-type vector to hold query parameters from URL query string
+ * @param req ExpressCpp Request
+ * @param res ExpressCpp Response
+ * @return true if conditions were successfully parsed into conditions vector
+ * @return false if conditions were unsuccessfully parsed into conditions vector. This includes but are not limited to,
+ * 				No state parameter, no stat1 parameter
+ */
+bool findState(vector<std::string> & conditions, Express::Request & req, Express::Response & res)
 {
 	char buff[10];
 	int begin = 1;
@@ -69,12 +79,17 @@ bool findState(vector<string> & conditions, Request & req, Response & res)
     return true;
 }
 
-
-void getData(Request & req, Response & res)
+/**
+ * @brief Query data and return it as a json.
+ * 
+ * @param req ExpressCpp Request
+ * @param res ExpressCpp Response
+ */
+void getData(Express::Request & req, Express::Response & res)
 {
 	Json::Value response;
 	vector<std::string> conditions;
-    string q;
+	std::string q;
 	if(findState(conditions,req,res))
 	{
 	    if(req.query["State"] == "Live")
@@ -88,7 +103,7 @@ void getData(Request & req, Response & res)
         }
 	    else if(req.query["State"] == "Max")
 		{
-		    q = "Select * from max where Time > dateTime('now','-15 days');";
+		    q = "Select * from max where Time > dateTime('now','-14 days');";
 
         }
 		else if(req.query["State"] == "Hour")
@@ -132,8 +147,12 @@ void getData(Request & req, Response & res)
 
 
 
-
-void initDashboardRoutes(Router & router)
+/**
+ * @brief 
+ * 
+ * @param router 
+ */
+void initDashboardRoutes(Express::Router & router)
 {
 	router.get("/getConfig",getDashConfig);
 	router.get("/getData",getData);
