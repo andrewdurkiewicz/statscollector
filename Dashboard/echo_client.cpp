@@ -68,11 +68,10 @@ static mqd_t _mqdesSelf;
 
 typedef struct intf_vals
 {
-    mutable std::string check;
+    mutable std::string value;
     mutable std::string label;
     mutable std::string API_Callback;
     mutable std::string unit;
-    mutable unsigned long delta;
     mutable float thru;
 } intf_val_t;
 
@@ -84,18 +83,19 @@ using websocketpp::lib::placeholders::_1;
 using websocketpp::lib::placeholders::_2;
 
 std::vector<intf_val_t> nodes;
+Json::Value configroot;
 
 std::string input_file;
 std::string header_str = "headers:";
 std::string data_str = "data:";
-std::string SQL_live = "CREATE TABLE 'live' ( 'Time' TEXT NOT NULL";
-std::string SQL_day = "CREATE TABLE 'day' ( 'Time' TEXT NOT NULL";
-std::string SQL_max = "CREATE TABLE 'max' ( 'Time' TEXT NOT NULL";
-std::string SQL_input_live = "INSERT INTO live (Time";
-std::string SQL_input_day = "INSERT INTO day (Time";
-std::string SQL_input_max = "INSERT INTO max (Time";
-std::string SQL_dayQuery;
-std::string SQL_maxQuery;
+std::string SQL_Create_Live = "CREATE TABLE 'live' ( 'Time' TEXT NOT NULL";
+std::string SQL_Create_Day = "CREATE TABLE 'day' ( 'Time' TEXT NOT NULL";
+std::string SQL_Create_Max = "CREATE TABLE 'max' ( 'Time' TEXT NOT NULL";
+std::string SQL_Insert_Live = "INSERT INTO live (Time";
+std::string SQL_Insert_Day = "INSERT INTO day (Time";
+std::string SQL_Insert_Max = "INSERT INTO max (Time";
+std::string SQL_Query_Day;
+std::string SQL_Query_Max;
 std::string time_prefix = "dateTime('NOW')";
 
 void SQL_CMD(std::string command);
@@ -178,35 +178,33 @@ void on_message(client *c, websocketpp::connection_hdl hdl, message_ptr msg)
     }
 
     Json::Value pdata;
-    Json::StyledWriter styledWriter;
     Json::Reader reader;
     bool parsingSuccessful = reader.parse(parsed_data, pdata);
-    std::cout << parsingSuccessful << std::endl
-              << std::endl;
+
     if (parsingSuccessful)
     {
         for (std::vector<intf_val_t>::const_iterator i = nodes.begin(); i != nodes.end(); ++i)
         {
-            (*i).check = pdata.get((*i).API_Callback, "A Default Value if not exists").asString();
+            (*i).value = pdata[(*i).API_Callback].asString();
         }
-        std::cout << nodes[0].check;
-        if (nodes[0].check != "A Default Value if not exists")
+        std::cout << nodes[0].value;
+        if (nodes[0].value != "")
         {
             int rc = sqlite3_open("/tmp/StatsCollector.db", &db);
             std::cout << rc;
             if (rc == 0)
             {
                 /**checks for open database. If rc == 0, the database is generated**/
-                SQL_CMD(SQL_live);
-                SQL_CMD(SQL_day);
-                SQL_CMD(SQL_max);
+                SQL_CMD(SQL_Create_Live);
+                SQL_CMD(SQL_Create_Day);
+                SQL_CMD(SQL_Create_Max);
             }
 
             SQL_CMD("ATTACH DATABASE '/tmp/StatsCollector' as 'statscollector';");
 
             for (std::vector<intf_val_t>::const_iterator i = nodes.begin(); i != nodes.end(); ++i)
             {
-                (*i).thru = convert((*i).check);
+                (*i).thru = convert((*i).value);
                 if ((*i).unit == "Mbps")
                 {
                     (*i).thru = 8 * (*i).thru / (1024.0 * 1024.0);
@@ -223,22 +221,13 @@ void on_message(client *c, websocketpp::connection_hdl hdl, message_ptr msg)
             }
             std::string buffer;
             std::string SQL_thru;
-            int pass_number = 0;
             for (std::vector<intf_val_t>::const_iterator i = nodes.begin(); i != nodes.end(); ++i)
             {
-                if (pass_number > 0)
-                {
-                    SQL_thru = SQL_thru + "," + boost::to_string((*i).thru);
-                }
-                else
-                {
-                    SQL_thru = "," +  boost::to_string((*i).thru);
-                }
-                pass_number++;
+                SQL_thru += "," + boost::to_string((*i).thru);
             }
 
             SQL_thru = SQL_thru + ");";
-            buffer = SQL_input_live + " VALUES (" + time_prefix + SQL_thru;
+            buffer = SQL_Insert_Live + " VALUES (" + time_prefix + SQL_thru;
 
             SQL_CMD(buffer);
             day_counter++;
@@ -247,13 +236,13 @@ void on_message(client *c, websocketpp::connection_hdl hdl, message_ptr msg)
 
             if (day_counter == DAY)
             {
-                SQL_CMD(SQL_dayQuery);
+                SQL_CMD(SQL_Query_Day);
                 SQL_CMD("Delete from day where Time < strftime('%Y-%m-%d %H:%M:%f', 'NOW','-1 day');");
                 day_counter = 0;
             }
             if (max_counter == MAX)
             {
-                SQL_CMD(SQL_maxQuery);
+                SQL_CMD(SQL_Query_Max);
                 SQL_CMD("Delete from max where Time < strftime('%Y-%m-%d %H:%M:%f', 'NOW','-14 days');");
                 max_counter = 0;
             }
@@ -270,7 +259,6 @@ void on_message(client *c, websocketpp::connection_hdl hdl, message_ptr msg)
  */
 void on_open(client *c, websocketpp::connection_hdl hdl)
 {
-    Json::Value configroot;
     Json::Reader configReader;
     std::ifstream file("/vsat/apps/stats_config.json");
     bool out = configReader.parse(file, configroot, true);
@@ -290,38 +278,32 @@ void on_open(client *c, websocketpp::connection_hdl hdl)
     for (std::vector<intf_val_t>::const_iterator i = nodes.begin(); i != nodes.end(); ++i)
     {
 
-        SQL_live = SQL_live + ", '" + (*i).label + "' REAL";
-        SQL_day = SQL_day + ", '" + (*i).label + "' REAL";
-        SQL_max = SQL_max + ", '" + (*i).label + "' REAL";
-        SQL_input_live = SQL_input_live + ", " + (*i).label;
-        SQL_input_day = SQL_input_day + ", " + (*i).label;
-        SQL_input_max = SQL_input_max + ", " + (*i).label;
+        SQL_Create_Live += ", '" + (*i).label + "' REAL";
+        SQL_Create_Day += ", '" + (*i).label + "' REAL";
+        SQL_Create_Max += ", '" + (*i).label + "' REAL";
+        SQL_Insert_Live += ", " + (*i).label;
+        SQL_Insert_Day += ", " + (*i).label;
+        SQL_Insert_Max +=  ", " + (*i).label;
     }
 
-    SQL_live = SQL_live + " );";
-    SQL_day = SQL_day + " );";
-    SQL_max = SQL_max + " );";
-    SQL_input_live = SQL_input_live + ")";
-    SQL_input_day = SQL_input_day + ")";
-    SQL_input_max = SQL_input_max + ")";
-    SQL_dayQuery = SQL_input_day + " VALUES(datetime('now')";
-    SQL_maxQuery = SQL_input_max + " VALUES(datetime('now')";
+    SQL_Create_Live += " );";
+    SQL_Create_Day  += " );";
+    SQL_Create_Max  += " );";
+    SQL_Insert_Live +=  ")";
+    SQL_Insert_Day  +=  ")";
+    SQL_Insert_Max  +=  ")";
+    SQL_Query_Day = SQL_Insert_Day + " VALUES(datetime('now')";
+    SQL_Query_Max = SQL_Insert_Max + " VALUES(datetime('now')";
     for (std::vector<intf_val_t>::const_iterator i = nodes.begin(); i != nodes.end(); ++i)
     {
 
-        SQL_dayQuery += ",(select avg(" + (*i).label + ") from"
-                                                       " live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW','-5 minutes'))";
-        SQL_maxQuery += ",(select avg(" + (*i).label + ") from"
-                                                       " live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', '-1 hours'))";
+        SQL_Query_Day += ",(select avg(" + (*i).label + ") from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW','-5 minutes'))";
+        SQL_Query_Max += ",(select avg(" + (*i).label + ") from live where Time > strftime('%Y-%m-%d %H:%M:%f', 'NOW', '-1 hours'))";
     }
-    SQL_dayQuery = SQL_dayQuery + ");";
-    SQL_maxQuery = SQL_maxQuery + ");";
+    SQL_Query_Day += ");";
+    SQL_Query_Max += ");";
 
     websocketpp::lib::error_code ec;
-    std::ifstream file_input(input_file.c_str());
-    Json::Reader reader;
-    Json::Value root;
-    reader.parse(file_input, root);
     std::string output;
 
     /**
@@ -330,11 +312,11 @@ void on_open(client *c, websocketpp::connection_hdl hdl)
      * 
      */ 
 
-    output.append("rows=" + root["rows"].asString() + ":");
-    output.append("style=" + root["style"].asString() + ":");
-    output.append("time=" + root["time"].asString() + ":");
+    output.append("rows=" + configroot["rows"].asString() + ":");
+    output.append("style=" + configroot["style"].asString() + ":");
+    output.append("time=" + configroot["time"].asString() + ":");
 
-    Json::Value stats = root["stats"];
+    Json::Value stats = configroot["stats"];
 
     for (int index = 0; index < stats.size(); ++index)
     {
